@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="Polis Protocol — three AI agents, one protocol, unified intelligence" width="100%" />
+</p>
+
 # Polis Protocol
 
 > A self-optimizing city of AI agents. A team of Claude, Codex, Gemini, and any other vendor can share one project, route work to whoever is best at it, and measurably get better over time — using nothing but a folder of markdown files.
