@@ -146,6 +146,11 @@ review:
   reviewer: null
   status: null
 settled_at: null
+quality_score: null      # 1-5; filled in at settlement. Frontmatter is the
+                         # canonical home; the body may also state it for human
+                         # readers, but the router reads this field.
+actual_minutes: null     # integer minutes from claim to settlement. Same rule:
+                         # frontmatter is canonical.
 ---
 
 # <Title>

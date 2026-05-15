@@ -208,6 +208,62 @@ def pick_recommendation(scores: list, explore_rate: float, rng: random.Random) -
     return scores_sorted[0]["citizen"], False, scores_sorted[0]["total"]
 
 
+def _extract_quality(fm: dict, body: str) -> int:
+    """Return the contract's quality self-score (1-5).
+
+    Resolution order:
+      1. Frontmatter `quality_score` field, if present and an int.
+      2. Body line of the form `Quality self-score: N` anchored to start-of-line
+         (optionally after a markdown heading marker like `### `).
+      3. Body pattern `### Quality self-score\n\nN` (heading then blank line then
+         the number alone on its own line) — the historical layout.
+      4. Default of 3 if nothing matches.
+
+    Anchoring to start-of-line (`^` with re.MULTILINE) prevents stray digits
+    inside prose ("scored 5/5 in usability") from being captured.
+    """
+    if isinstance(fm.get("quality_score"), int):
+        return max(1, min(5, fm["quality_score"]))
+    m = re.search(
+        r"^\s*(?:#{1,6}\s*)?Quality\s*self[-_ ]score\s*:\s*(\d+)\s*$",
+        body,
+        re.MULTILINE | re.IGNORECASE,
+    )
+    if m:
+        return int(m.group(1))
+    m = re.search(
+        r"^\s*#{1,6}\s*Quality\s*self[-_ ]score\s*$\s*\n\s*\n\s*(\d+)\s*$",
+        body,
+        re.MULTILINE | re.IGNORECASE,
+    )
+    return int(m.group(1)) if m else 3
+
+
+def _extract_actual_minutes(fm: dict, body: str) -> int:
+    """Return actual minutes spent on the contract.
+
+    Resolution order:
+      1. Frontmatter `actual_minutes` field, if present and an int.
+      2. Body line of the form `actual_minutes: N` (or `actual minutes: N`)
+         anchored to start-of-line, optionally after a markdown heading or
+         list marker.
+      3. Default of 30 if nothing matches.
+
+    The label MUST appear at the start of its own line and be followed by a
+    colon. This deliberately ignores prose mentions like "6 actual_minutes per
+    paper × 12 papers", which would otherwise win because `re.search` returns
+    the first match and grabs the nearest digit.
+    """
+    if isinstance(fm.get("actual_minutes"), int):
+        return max(1, fm["actual_minutes"])
+    m = re.search(
+        r"^\s*(?:#{1,6}\s*|[-*]\s+)?actual[_ ]minutes\s*:\s*(\d+)\s*$",
+        body,
+        re.MULTILINE | re.IGNORECASE,
+    )
+    return int(m.group(1)) if m else 30
+
+
 def reconcile_stats(polis_root: Path) -> None:
     """Rebuild routing_stats.yml from scratch by replaying settled contracts."""
     settled_dir = polis_root / "contracts" / "settled"
@@ -224,12 +280,8 @@ def reconcile_stats(polis_root: Path) -> None:
         owner = fm.get("owner")
         required_tags = fm.get("required_tags") or []
         settled_at = fm.get("settled_at") or fm.get("opened_at")
-        # Parse the body for a Quality self-score (best-effort).
-        match = re.search(r"Quality self-score[^\n]*\n+\s*(\d+)", body)
-        quality = int(match.group(1)) if match else 3
-        # Parse for estimated actual minutes if present (optional).
-        actual_match = re.search(r"actual[_ ]minutes?[^\n]*?(\d+)", body, re.IGNORECASE)
-        actual_minutes = int(actual_match.group(1)) if actual_match else 30
+        quality = _extract_quality(fm, body)
+        actual_minutes = _extract_actual_minutes(fm, body)
         settlements.append((settled_at, owner, required_tags, quality, actual_minutes))
 
     settlements.sort()  # by settled_at
