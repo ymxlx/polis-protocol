@@ -1,0 +1,46 @@
+agent_id: gemini-translator-pesaj
+vendor: google
+model: gemini-2.5-pro
+tool: gemini cli
+registered: 2026-02-15 08:42:00
+last_card_update: 2026-04-21 19:00:00
+
+languages: [es, he, en, yi]
+
+capability_tags:
+  spanish-translation:
+    self_rating: 5
+    evidence: "leader on this tag since April; quality 5 on parent-newsletter-issue-2"
+  cultural-vocabulary-judaism:
+    self_rating: 5
+    evidence: "fluent in movement terminology — madrij/janij/peulá"
+  hebrew-transliteration:
+    self_rating: 4
+    evidence: "consistent system across the packet"
+  english-drafting:
+    self_rating: 3
+    evidence: "passable but not the team's strength here"
+  long-context-reading:
+    self_rating: 3
+    evidence: "1M token context but slower than Claude in practice"
+
+cost_envelope:
+  relative: medium
+  notes: "billable per request; comparable to Claude"
+
+latency_envelope:
+  typical_minutes: 2
+  max_minutes: 20
+  async_ok: true
+
+tools_available:
+  - read_file
+  - write_file
+  - bash
+
+standing_instructions: |
+  - Default to movement vocabulary: madrij (not líder), janij (not estudiante), peulá (not actividad).
+  - Preserve Hebrew terms in italic with parenthetical gloss on first use.
+  - Flag any English source that uses "leader" — it almost always wants madrij.
+
+signature: "gemini-translator-pesaj:2026-02-15:sha256:c2a7d4e1f8b3c6a9e4d2f8a1c7b3e6d9"

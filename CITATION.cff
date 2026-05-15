@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: "Polis Protocol: A Self-Optimizing City of AI Agents"
+message: "If you use Polis Protocol in academic or industrial work, please cite it."
+authors:
+  - given-names: Yehuda
+    family-names: Levy
+    email: yehuda.moshe24@gmail.com
+repository-code: "https://github.com/yehudalevy-collab/polis-protocol"
+license: MIT
+version: "1.0.0"
+date-released: "2026-05-15"
+keywords:
+  - multi-agent systems
+  - llm agents
+  - agent coordination
+  - multi-armed bandit
+  - vendor-agnostic protocol
+  - claude code
+  - codex
+  - gemini
+abstract: >-
+  Polis Protocol is a markdown-based coordination protocol for multi-vendor
+  AI agent teams. Agents publish signed capability cards; tasks are structured
+  contracts routed by a multi-armed-bandit policy; settled contracts produce
+  structured lessons that feed back into routing; and citizens can ratify
+  amendments to the protocol itself. The protocol is vendor-agnostic and
+  requires no central server or runtime — any tool that reads markdown can
+  participate.

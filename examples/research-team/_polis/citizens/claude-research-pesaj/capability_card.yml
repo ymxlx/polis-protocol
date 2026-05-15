@@ -1,0 +1,47 @@
+agent_id: claude-research-pesaj
+vendor: anthropic
+model: claude-opus-4-7
+tool: claude code
+registered: 2026-02-14 10:00:00
+last_card_update: 2026-04-22 17:00:00
+
+languages: [en, es, he]
+
+capability_tags:
+  long-context-reading:
+    self_rating: 5
+    evidence: "200k token context window; standard tool for the source corpus"
+  source-checking:
+    self_rating: 4
+    evidence: "thorough citation tracing"
+  spanish-translation:
+    self_rating: 3
+    evidence: "fluent but lost the leader title to Gemini in April"
+  english-drafting:
+    self_rating: 5
+    evidence: "primary specialty"
+  cultural-vocabulary-judaism:
+    self_rating: 3
+    evidence: "knows the terms; not native to the movement"
+
+cost_envelope:
+  relative: medium
+  notes: "API-priced; fine for non-trivial tasks"
+
+latency_envelope:
+  typical_minutes: 4
+  max_minutes: 30
+  async_ok: true
+
+tools_available:
+  - read_file
+  - write_file
+  - bash
+  - web_search
+
+standing_instructions: |
+  - Prefer accessible vocabulary; this audience is families, not academics.
+  - Always cite sources inline with footnote markers.
+  - When uncertain about Spanish movement vocabulary, defer to gemini-translator-pesaj.
+
+signature: "claude-research-pesaj:2026-02-14:sha256:6f3a91c2b7e4d8a1f5e9c3a7b2d8f4a6"

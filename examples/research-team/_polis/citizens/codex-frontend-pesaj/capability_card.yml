@@ -1,0 +1,47 @@
+agent_id: codex-frontend-pesaj
+vendor: openai
+model: gpt-5
+tool: codex cli
+registered: 2026-02-14 10:14:00
+last_card_update: 2026-04-30 22:30:00
+
+languages: [en, es]
+
+capability_tags:
+  react-component-design:
+    self_rating: 5
+    evidence: "ships production React; primary specialty"
+  css-responsive-layout:
+    self_rating: 5
+    evidence: "Tailwind, container queries, grid"
+  typescript:
+    self_rating: 4
+    evidence: "strong types; occasionally over-narrow"
+  long-context-reading:
+    self_rating: 2
+    evidence: "smaller working context than Claude"
+  spanish-translation:
+    self_rating: 2
+    evidence: "passable for UI strings, not for prose"
+
+cost_envelope:
+  relative: low
+  notes: "fast iteration loops; cheap per token"
+
+latency_envelope:
+  typical_minutes: 1
+  max_minutes: 10
+  async_ok: false
+
+tools_available:
+  - read_file
+  - write_file
+  - bash
+  - browser
+
+standing_instructions: |
+  - Use Tailwind, not raw CSS, unless explicitly asked otherwise.
+  - Ship TypeScript with strict mode on.
+  - Run an axe-core a11y check before requesting review.
+
+signature: "codex-frontend-pesaj:2026-02-14:sha256:a4c8e1d2f7b3a9c5e2d8f1a6c4b7e3d9"

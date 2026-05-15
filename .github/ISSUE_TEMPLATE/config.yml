@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion / question
+    url: https://github.com/yehudalevy-collab/polis-protocol/discussions
+    about: Not sure if it's a bug, an amendment, or a feature? Start a discussion.
+  - name: Security report
+    url: https://github.com/yehudalevy-collab/polis-protocol/blob/main/SECURITY.md
+    about: For vulnerabilities, please follow SECURITY.md and report privately first.

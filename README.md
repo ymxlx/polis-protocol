@@ -6,9 +6,12 @@
 
 > A self-optimizing city of AI agents. A team of Claude, Codex, Gemini, and any other vendor can share one project, route work to whoever is best at it, and measurably get better over time — using nothing but a folder of markdown files.
 
+[![tests](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml/badge.svg)](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skill](https://img.shields.io/badge/format-Claude%20Skill-blueviolet)](https://github.com/yehudalevy-collab/polis-protocol)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
+[![Skill](https://img.shields.io/badge/format-Claude%20Skill-blueviolet)](SKILL.md)
 [![Vendor-agnostic](https://img.shields.io/badge/vendor-agnostic-success)]()
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ---
 
@@ -248,6 +251,35 @@ The migration path from `agent-vault` is documented in [`references/troubleshoot
 ## Status
 
 Reference implementation. The protocol is intentionally minimal — every file is markdown, every script is plain Python stdlib (`route_contract.py` adds one optional `PyYAML` dependency for parsing capability cards). Forks, issues, and amendments welcome.
+
+---
+
+## Roadmap
+
+The protocol layer is stable. Work in flight, in rough order of expected impact:
+
+- **`examples/` gallery** — 3 worked polises (research team, product team, OSS maintainer trio) to teach by example. Contributions welcome.
+- **Alternate routers** — UCB and Thompson-sampling variants of `route_contract.py`, side-by-side with the default ε-greedy bandit. Benchmark harness on synthetic capability traces.
+- **Contextual bandit** — incorporate per-contract features (deadline pressure, stakes level, language) into the routing decision, not just per-tag history.
+- **Auto-rollover** — quarterly chronicle rollover and 90-day settled-contract archival as a one-line cron, so a year-long polis stays bounded without manual hygiene.
+- **Bridge expansions** — first-class entry pointers for Aider, opencode, Zed, Devin, Cursor agent mode. Each is a 30-line markdown stub.
+- **Polis-of-polises** — a documented pattern for multi-team projects where each subteam is its own polis and a thin meta-polis routes cross-team contracts.
+- **Visualizer** — small static dashboard that reads `routing_stats.yml` + the chronicle and shows the team's growth over time. (Bonus: dogfood it by opening it as the first contract in a fresh polis.)
+- **Academic write-up** — short paper situating Polis in the multi-agent-coordination literature (bandit-based task assignment, blackboard architectures, agent-based simulation).
+
+File an [amendment-proposal issue](../../issues/new?template=amendment-proposal.md) if your need isn't on this list.
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports, amendment proposals, new bridge tools, and worked examples are all valued. Security reports go to [SECURITY.md](SECURITY.md).
+
+---
+
+## Citing
+
+If you use Polis Protocol in academic work, please cite it via [CITATION.cff](CITATION.cff) or the "Cite this repository" button on GitHub.
 
 ---
 

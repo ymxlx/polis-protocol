@@ -1,0 +1,76 @@
+last_updated: '2026-05-01 08:02:00'
+explore_rate: 0.15
+tags:
+  long-context-reading:
+    citizens:
+      claude-research-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 4.0
+        avg_actual_minutes: 420.0
+        last_completed: '2026-03-02'
+    leader: claude-research-pesaj
+    leader_confidence: 0.566
+  source-checking:
+    citizens:
+      claude-research-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 4.0
+        avg_actual_minutes: 420.0
+        last_completed: '2026-03-02'
+    leader: claude-research-pesaj
+    leader_confidence: 0.566
+  spanish-translation:
+    citizens:
+      claude-research-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 3.0
+        avg_actual_minutes: 180.0
+        last_completed: '2026-03-15'
+      gemini-translator-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 5.0
+        avg_actual_minutes: 90.0
+        last_completed: '2026-04-21'
+    leader: gemini-translator-pesaj
+    leader_confidence: 0.731
+  cultural-vocabulary-judaism:
+    citizens:
+      claude-research-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 3.0
+        avg_actual_minutes: 180.0
+        last_completed: '2026-03-15'
+      gemini-translator-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 5.0
+        avg_actual_minutes: 90.0
+        last_completed: '2026-04-21'
+    leader: gemini-translator-pesaj
+    leader_confidence: 0.731
+  react-component-design:
+    citizens:
+      codex-frontend-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 4.0
+        avg_actual_minutes: 480.0
+        last_completed: '2026-04-30'
+    leader: codex-frontend-pesaj
+    leader_confidence: 0.566
+  css-responsive-layout:
+    citizens:
+      codex-frontend-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 4.0
+        avg_actual_minutes: 480.0
+        last_completed: '2026-04-30'
+    leader: codex-frontend-pesaj
+    leader_confidence: 0.566
+  typescript:
+    citizens:
+      codex-frontend-pesaj:
+        contracts_completed: 1
+        avg_quality_score: 4.0
+        avg_actual_minutes: 480.0
+        last_completed: '2026-04-30'
+    leader: codex-frontend-pesaj
+    leader_confidence: 0.566
