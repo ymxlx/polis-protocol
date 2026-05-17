@@ -30,6 +30,9 @@ Most multi-agent coordination tools stop at *communication* — a shared scratch
 
 The whole thing lives in a folder. There is no central server, no required runtime, no proprietary format. If a tool can read and write markdown, it can participate.
 
+If you are wondering how Polis compares with AGENTS.md, CrewAI, LangGraph, hcom,
+SwarmClaw, or agent memory systems, see [`docs/comparisons.md`](docs/comparisons.md).
+
 ---
 
 ## Why "polis"
