@@ -13,6 +13,10 @@
 [![Vendor-agnostic](https://img.shields.io/badge/vendor-agnostic-success)]()
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
+<p align="center">
+  <img src="assets/demo.gif" alt="30 second Polis Protocol terminal demo" width="100%" />
+</p>
+
 ---
 
 ## What it is
@@ -48,15 +52,32 @@ It is opinionated on purpose. The names are sticky, the file format is rigid, th
 
 ## Quick start
 
-### 1. Install the skill (Claude Code)
+### One-command install
 
-Drop `polis-protocol.skill` into your Claude Code skills folder, or just clone this repo:
+From the root of any project:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash
+```
+
+That creates `_polis/`, bridge files for Claude/Codex/Gemini, and a starter
+capability card. You can pass a better citizen identity when you want one:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash -s -- \
+  --agent-id claude-research-yourproject \
+  --vendor anthropic \
+  --model claude-opus-4-7 \
+  --tool "claude code"
+```
+
+### Manual install
 
 ```bash
 git clone https://github.com/yehudalevy-collab/polis-protocol.git
 ```
 
-### 2. Found a polis
+Then found a polis:
 
 ```bash
 python polis-protocol/scripts/init_polis.py \
@@ -86,7 +107,7 @@ your-project/
         └── routing_stats.yml              ← learned routing policy
 ```
 
-### 3. Open a contract
+### Open a contract
 
 Drop a file in `_polis/contracts/open/`:
 
@@ -104,7 +125,7 @@ cost_ceiling: medium
 ...
 ```
 
-### 4. Route it
+### Route it
 
 ```bash
 python polis-protocol/scripts/route_contract.py \
@@ -123,7 +144,7 @@ Score breakdown:
 Recommendation: claude-research-yourproject
 ```
 
-### 5. Settle and learn
+### Settle and learn
 
 When the contract closes, the owner files a lesson under `_polis/lessons/<tag>/`. Then:
 
