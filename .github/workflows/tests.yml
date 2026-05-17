@@ -1,0 +1,65 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Reconcile parser regression suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install PyYAML
+        run: python -m pip install --upgrade pip pyyaml
+
+      - name: Run reconcile parser tests
+        run: python3 scripts/test_reconcile_parsing.py
+
+      - name: Smoke-test init_polis.py
+        run: |
+          mkdir -p /tmp/smoke
+          python3 scripts/init_polis.py \
+            --project-root /tmp/smoke \
+            --agent-id smoke-test-citizen \
+            --vendor anthropic \
+            --model claude-opus-4-7 \
+            --tool "ci runner" \
+            --project-name "CI Smoke"
+          test -f /tmp/smoke/_polis/CONSTITUTION.md
+          test -f /tmp/smoke/_polis/citizens/smoke-test-citizen/capability_card.yml
+          test -f /tmp/smoke/CLAUDE.md
+          test -f /tmp/smoke/AGENTS.md
+          test -f /tmp/smoke/GEMINI.md
+
+      - name: Idempotency check
+        run: |
+          python3 scripts/init_polis.py \
+            --project-root /tmp/smoke \
+            --agent-id smoke-test-citizen \
+            --vendor anthropic \
+            --model claude-opus-4-7 \
+            --tool "ci runner" \
+            --project-name "CI Smoke" \
+            > /tmp/run2.log
+          # Re-running with the same agent-id should mark all files as "exists" (no overwrite).
+          ! grep -E '^\s*\+ ' /tmp/run2.log
+
+      - name: Invalid agent-id is rejected before any disk write
+        run: |
+          ! python3 scripts/init_polis.py \
+            --project-root /tmp/smoke \
+            --agent-id BAD \
+            --vendor anthropic \
+            --model x --tool x --project-name x 2>/dev/null
