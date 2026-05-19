@@ -63,7 +63,7 @@ From the root of any project:
 curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash
 ```
 
-That creates `_polis/`, bridge files for Claude/Codex/Gemini, and a starter
+That creates `_polis/`, bridge files for Claude/Codex/Gemini/Aider, and a starter
 capability card. You can pass a better citizen identity when you want one:
 
 ```bash
@@ -96,7 +96,7 @@ You now have:
 
 ```
 your-project/
-├── CLAUDE.md / AGENTS.md / GEMINI.md     ← cross-tool entry pointers
+├── CLAUDE.md / AGENTS.md / GEMINI.md / AIDER.md ← cross-tool entry pointers
 ├── .agents/skills/polis-protocol/SKILL.md ← Codex-format mirror
 └── _polis/
     ├── CONSTITUTION.md                    ← canonical protocol
@@ -245,14 +245,15 @@ Both produce the same recommendation. Citizens can always override.
 
 ## Working across vendors
 
-The protocol is vendor-agnostic. The same polis can be shared by Claude, Codex, Gemini CLI, GPT-based tools, and anything else that reads markdown. Bootstrap writes four discovery pointers:
+The protocol is vendor-agnostic. The same polis can be shared by Claude, Codex, Gemini CLI, Aider, GPT-based tools, and anything else that reads markdown. Bootstrap writes five discovery pointers:
 
 - `CLAUDE.md` — entry point for Claude Code
-- `AGENTS.md` — entry point for Codex (and Jules, Aider, goose, opencode, Zed, Warp, VS Code, Devin)
+- `AGENTS.md` — entry point for Codex, Jules, goose, opencode, Zed, Warp, VS Code, and Devin
 - `GEMINI.md` — entry point for Gemini CLI
+- `AIDER.md` — entry point for Aider
 - `.agents/skills/polis-protocol/SKILL.md` — a Codex-format skill mirror
 
-All four point at one place: `_polis/CONSTITUTION.md`. Updating the protocol means editing that one file.
+All five point at one place: `_polis/CONSTITUTION.md`. Updating the protocol means editing that one file.
 
 Cross-vendor routing is where this protocol earns its keep. A Spanish translation goes to whichever citizen has the best track record on `spanish-translation`, not whichever happens to be the user's current chat. Over time, that means team output stops being bottlenecked by any single model's blind spots.
 
