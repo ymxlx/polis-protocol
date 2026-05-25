@@ -18,6 +18,7 @@ Optional arguments:
     --languages en,es,he
     --bridge-tools claude,codex,gemini    # which entry pointers to write
     --codex-skill / --no-codex-skill       # write .agents/skills/polis-protocol/SKILL.md
+    --dry-run                              # preview files without writing
     --force                                 # overwrite existing files
 
 The bridge pointers (CLAUDE.md, AGENTS.md, GEMINI.md) are short files at the
@@ -272,14 +273,12 @@ be noise in the chronicle. Audience: future instances of this same citizen. -->
 """
 
 
-def write_bridge_pointers(
+def bridge_pointer_targets(
     project_root: Path,
     bridge_tools: list,
-    force: bool,
 ) -> dict:
-    """Write CLAUDE.md, AGENTS.md, GEMINI.md at project root."""
-    pointer_content = load_template("bridge_pointer.md")
-    results = {}
+    """Return supported bridge pointer targets keyed by display name."""
+    targets = {}
     filename_map = {
         "claude": "CLAUDE.md",
         "codex": "AGENTS.md",
@@ -291,14 +290,80 @@ def write_bridge_pointers(
             print(f"  warning: unknown bridge tool '{tool}', skipping.")
             continue
         filename = filename_map[tool]
-        target = project_root / filename
-        results[filename] = write_if_absent(target, pointer_content, force=force)
+        targets[f"<root>/{filename}"] = project_root / filename
+    return targets
+
+
+def write_bridge_pointers(
+    project_root: Path,
+    bridge_tools: list,
+    force: bool,
+) -> dict:
+    """Write CLAUDE.md, AGENTS.md, GEMINI.md at project root."""
+    pointer_content = load_template("bridge_pointer.md")
+    results = {}
+    for display_name, target in bridge_pointer_targets(project_root, bridge_tools).items():
+        results[display_name] = write_if_absent(target, pointer_content, force=force)
     return results
 
 
 def write_codex_skill_copy(project_root: Path, skill_md: Path, force: bool) -> str:
     target = project_root / ".agents" / "skills" / "polis-protocol" / "SKILL.md"
     return write_if_absent(target, skill_md.read_text(encoding="utf-8"), force=force)
+
+
+def planned_actions(
+    project_root: Path,
+    bridge_tools: list,
+    codex_skill: bool,
+) -> dict:
+    actions = {
+        "CONSTITUTION.md": "planned",
+        "README.md": "planned",
+        "index.md": "planned",
+        "chronicle.md": "planned",
+        "routing_stats.yml": "planned",
+        "capability_card.yml": "planned",
+        "status.md": "planned",
+        "inbox.md": "planned",
+        "journal.md": "planned",
+    }
+    for display_name in bridge_pointer_targets(project_root, bridge_tools):
+        actions[display_name] = "planned"
+    if codex_skill:
+        skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
+        if skill_md.exists():
+            actions[".agents/skills/polis-protocol/SKILL.md"] = "planned"
+        else:
+            print("  warning: SKILL.md not found at skill root; skipping codex skill copy.")
+    return actions
+
+
+def print_report(
+    polis_root: Path,
+    agent_id: str,
+    vendor: str,
+    model: str,
+    actions: dict,
+    dry_run: bool = False,
+) -> None:
+    if dry_run:
+        print(f"\nDry run: Polis would be founded at {polis_root}")
+    else:
+        print(f"\nPolis founded at {polis_root}")
+    print(f"Founder: {agent_id} ({vendor} / {model})\n")
+    print("Files:")
+    for name, result in actions.items():
+        marker = {"created": "+", "overwritten": "~", "exists": ".", "planned": "?"}[result]
+        print(f"  {marker} {name}")
+    if dry_run:
+        print("\nNo files or directories were created.")
+        return
+    print("\nNext steps:")
+    print(f"  1. Edit _polis/citizens/{agent_id}/capability_card.yml with honest capability tags.")
+    print(f"  2. Edit _polis/index.md with a project summary.")
+    print(f"  3. Open your first contract under _polis/contracts/open/.")
+    print("  4. When other agents (Codex, Gemini, others) enter this project, they will read the bridge pointers and register themselves.\n")
 
 
 def main():
@@ -317,6 +382,7 @@ def main():
     parser.add_argument("--bridge-tools", default="claude,codex,gemini", help="Which entry pointers to write at project root.")
     parser.add_argument("--codex-skill", dest="codex_skill", action="store_true", default=True)
     parser.add_argument("--no-codex-skill", dest="codex_skill", action="store_false")
+    parser.add_argument("--dry-run", action="store_true", help="Preview scaffolded files without writing anything.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing files.")
     args = parser.parse_args()
 
@@ -335,6 +401,18 @@ def main():
 
     languages = [lang.strip() for lang in args.languages.split(",") if lang.strip()]
     bridge_tools = [t.strip() for t in args.bridge_tools.split(",") if t.strip()]
+
+    if args.dry_run:
+        actions = planned_actions(project_root, bridge_tools, args.codex_skill)
+        print_report(
+            polis_root,
+            args.agent_id,
+            args.vendor,
+            args.model,
+            actions,
+            dry_run=True,
+        )
+        return
 
     # Pre-create directories that the templates do not include via file writes.
     for d in [
@@ -408,8 +486,8 @@ def main():
 
     # Bridge pointers at project root.
     bridge_results = write_bridge_pointers(project_root, bridge_tools, args.force)
-    for filename, result in bridge_results.items():
-        actions[f"<root>/{filename}"] = result
+    for display_name, result in bridge_results.items():
+        actions[display_name] = result
 
     # Codex-format skill copy.
     if args.codex_skill:
@@ -421,18 +499,7 @@ def main():
         else:
             print("  warning: SKILL.md not found at skill root; skipping codex skill copy.")
 
-    # Report.
-    print(f"\nPolis founded at {polis_root}")
-    print(f"Founder: {args.agent_id} ({args.vendor} / {args.model})\n")
-    print("Files:")
-    for name, result in actions.items():
-        marker = {"created": "+", "overwritten": "~", "exists": "."}[result]
-        print(f"  {marker} {name}")
-    print("\nNext steps:")
-    print(f"  1. Edit _polis/citizens/{args.agent_id}/capability_card.yml with honest capability tags.")
-    print(f"  2. Edit _polis/index.md with a project summary.")
-    print(f"  3. Open your first contract under _polis/contracts/open/.")
-    print(f"  4. When other agents (Codex, Gemini, others) enter this project, they will read the bridge pointers and register themselves.\n")
+    print_report(polis_root, args.agent_id, args.vendor, args.model, actions)
 
 
 if __name__ == "__main__":
