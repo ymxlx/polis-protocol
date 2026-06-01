@@ -49,12 +49,16 @@ Recommendation: gemini-translator-pesaj   ← won on history, not self-rating
 
 ## What it is
 
-Most multi-agent coordination tools stop at *communication* — a shared scratchpad where agents can leave notes for each other. That is the floor. The Polis Protocol aims higher:
+There is now a wave of git-and-markdown task boards for AI agents — claim a task, do it, mark it done. They're good, and Polis can write to them. But a board is **passive**: it records what happened and never gets smarter. The protocol is frozen the day it ships.
 
-1. **Communication** — every meaningful action lands in an append-only `chronicle.md`.
-2. **Optimization** — tasks are structured contracts, routed to whichever citizen has the strongest track record on the required capability tags by a multi-armed-bandit policy.
-3. **Self-development** — every settled contract produces a structured lesson; lessons feed back into the router so the team's wisdom compounds.
-4. **Constitutional evolution** — when a rule stops working, citizens can propose, vote on, and ratify amendments to the protocol itself.
+Polis is the only one of these that is **active** — the coordination layer itself learns and governs:
+
+1. **Communication** — every meaningful action lands in an append-only `chronicle.md`. *(Every board does this.)*
+2. **Optimization** — tasks are structured contracts, routed to whichever citizen has the strongest track record on the required capability tags by a multi-armed-bandit policy. *(A board can't; it has no notion of who's best.)*
+3. **Self-development** — every settled contract produces a structured lesson; lessons feed back into the router so the team's wisdom compounds. **The team measurably gets better over time.**
+4. **Constitutional evolution** — when a rule stops working, citizens propose, vote on, and ratify amendments to the protocol itself. *No other coordination tool ships this — it otherwise exists only in research papers.*
+
+> **A board is something you fill in. Polis is a team that develops.** It learns who's best, and it can rewrite its own rules.
 
 The whole thing lives in a folder. There is no central server, no required runtime, no proprietary format. If a tool can read and write markdown, it can participate.
 
