@@ -8,3 +8,7 @@ venv/
 .idea/
 .vscode/
 polis-protocol/
+
+# Social / launch drafts — keep local only
+docs/launch/
+docs/anthropic/
