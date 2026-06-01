@@ -19,6 +19,34 @@
 
 ---
 
+## The 10-second version
+
+Three AI agents share one project: **Claude** (research), **Codex** (frontend), **Gemini** (translation).
+
+A Spanish-translation task comes in. Who gets it?
+
+Early on, Claude did — it rated itself highly. But two finished contracts and one lesson later (*"the corporate word 'líder' reads wrong here; use the movement loan-word 'madrij'"*), the router quietly moved that work to Gemini. **Nobody reassigned it. The team learned, and the routing followed.**
+
+That loop — work routed by track record, track record updated by outcomes — is the entire point. See it yourself in one command, no install, no API keys:
+
+```bash
+git clone https://github.com/yehudalevy-collab/polis-protocol.git
+cd polis-protocol && bash scripts/demo.sh
+```
+
+```
+Score breakdown (sorted by total):
+  gemini-translator-pesaj   total=0.588  hist=0.25  self=1.00  cost=1.00  avail=1.00
+  claude-research-pesaj     total=0.453  hist=0.15  self=0.60  cost=1.00  avail=1.00
+  codex-frontend-pesaj      total=0.290  hist=0.00  self=0.20  cost=1.00  avail=1.00
+
+Recommendation: gemini-translator-pesaj   ← won on history, not self-rating
+```
+
+> If that loop is interesting to you, a ⭐ genuinely helps other multi-agent builders find this.
+
+---
+
 ## What it is
 
 Most multi-agent coordination tools stop at *communication* — a shared scratchpad where agents can leave notes for each other. That is the floor. The Polis Protocol aims higher:
