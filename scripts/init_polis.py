@@ -16,13 +16,13 @@ Optional arguments:
     --tool "claude.ai web"
     --role "research and source-checking"
     --languages en,es,he
-    --bridge-tools claude,codex,gemini    # which entry pointers to write
+    --bridge-tools claude,codex,gemini,aider  # which entry pointers to write
     --codex-skill / --no-codex-skill       # write .agents/skills/polis-protocol/SKILL.md
     --force                                 # overwrite existing files
 
-The bridge pointers (CLAUDE.md, AGENTS.md, GEMINI.md) are short files at the
-project root that point each tool at the canonical _polis/CONSTITUTION.md, so
-Claude, Codex, and Gemini can all discover and follow the same protocol.
+The bridge pointers (CLAUDE.md, AGENTS.md, GEMINI.md, AIDER.md) are short files
+at the project root that point each tool at the canonical _polis/CONSTITUTION.md,
+so Claude, Codex, Gemini, and Aider can all discover and follow the same protocol.
 """
 
 import argparse
@@ -277,13 +277,14 @@ def write_bridge_pointers(
     bridge_tools: list,
     force: bool,
 ) -> dict:
-    """Write CLAUDE.md, AGENTS.md, GEMINI.md at project root."""
+    """Write bridge pointer files at project root."""
     pointer_content = load_template("bridge_pointer.md")
     results = {}
     filename_map = {
         "claude": "CLAUDE.md",
         "codex": "AGENTS.md",
         "gemini": "GEMINI.md",
+        "aider": "AIDER.md",
     }
     for tool in bridge_tools:
         tool = tool.strip().lower()
@@ -314,7 +315,7 @@ def main():
     parser.add_argument("--tool", default="claude.ai web", help="Tool string. Example: 'claude code', 'codex', 'gemini cli'.")
     parser.add_argument("--role", default="founding citizen", help="Short role description (used in profile prose).")
     parser.add_argument("--languages", default="en", help="Comma-separated language codes. Example: en,es,he")
-    parser.add_argument("--bridge-tools", default="claude,codex,gemini", help="Which entry pointers to write at project root.")
+    parser.add_argument("--bridge-tools", default="claude,codex,gemini,aider", help="Which entry pointers to write at project root.")
     parser.add_argument("--codex-skill", dest="codex_skill", action="store_true", default=True)
     parser.add_argument("--no-codex-skill", dest="codex_skill", action="store_false")
     parser.add_argument("--force", action="store_true", help="Overwrite existing files.")
