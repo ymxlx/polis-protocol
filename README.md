@@ -124,6 +124,15 @@ python polis-protocol/scripts/init_polis.py \
   --project-name "Your Project Name"
 ```
 
+Preview the scaffold without writing files:
+
+```bash
+python polis-protocol/scripts/init_polis.py \
+  --project-root /path/to/your/project \
+  --agent-id claude-research-yourproject \
+  --dry-run
+```
+
 You now have:
 
 ```
