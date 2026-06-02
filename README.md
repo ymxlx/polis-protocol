@@ -139,6 +139,7 @@ You now have:
 your-project/
 ├── CLAUDE.md / AGENTS.md / GEMINI.md / AIDER.md ← cross-tool entry pointers
 ├── .agents/skills/polis-protocol/SKILL.md ← Codex-format mirror
+├── .antigravity/skills/polis-protocol/SKILL.md ← Google Antigravity skill
 └── _polis/
     ├── CONSTITUTION.md                    ← canonical protocol
     ├── README.md
@@ -286,15 +287,16 @@ Both produce the same recommendation. Citizens can always override.
 
 ## Working across vendors
 
-The protocol is vendor-agnostic. The same polis can be shared by Claude, Codex, Gemini CLI, Aider, GPT-based tools, and anything else that reads markdown. Bootstrap writes five discovery pointers:
+The protocol is vendor-agnostic. The same polis can be shared by Claude, Codex, Gemini CLI, Google Antigravity, Aider, GPT-based tools, and anything else that reads markdown. Bootstrap writes these discovery pointers:
 
 - `CLAUDE.md` — entry point for Claude Code
 - `AGENTS.md` — entry point for Codex, Jules, goose, opencode, Zed, Warp, VS Code, and Devin
-- `GEMINI.md` — entry point for Gemini CLI
+- `GEMINI.md` — entry point for Gemini CLI and Google Antigravity
 - `AIDER.md` — entry point for Aider
 - `.agents/skills/polis-protocol/SKILL.md` — a Codex-format skill mirror
+- `.antigravity/skills/polis-protocol/SKILL.md` — auto-loaded by Google Antigravity ([integration guide](docs/antigravity.md))
 
-All five point at one place: `_polis/CONSTITUTION.md`. Updating the protocol means editing that one file.
+They all point at one place: `_polis/CONSTITUTION.md`. Updating the protocol means editing that one file.
 
 Cross-vendor routing is where this protocol earns its keep. A Spanish translation goes to whichever citizen has the best track record on `spanish-translation`, not whichever happens to be the user's current chat. Over time, that means team output stops being bottlenecked by any single model's blind spots.
 

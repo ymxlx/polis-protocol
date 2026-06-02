@@ -18,6 +18,7 @@ Optional arguments:
     --languages en,es,he
     --bridge-tools claude,codex,gemini,aider  # which entry pointers to write
     --codex-skill / --no-codex-skill       # write .agents/skills/polis-protocol/SKILL.md
+    --antigravity-skill / --no-antigravity-skill  # write .antigravity/skills/polis-protocol/SKILL.md
     --dry-run                              # preview files without writing
     --force                                 # overwrite existing files
 
@@ -313,10 +314,17 @@ def write_codex_skill_copy(project_root: Path, skill_md: Path, force: bool) -> s
     return write_if_absent(target, skill_md.read_text(encoding="utf-8"), force=force)
 
 
+def write_antigravity_skill_copy(project_root: Path, skill_md: Path, force: bool) -> str:
+    """Mirror SKILL.md into the location Google Antigravity reads skills from."""
+    target = project_root / ".antigravity" / "skills" / "polis-protocol" / "SKILL.md"
+    return write_if_absent(target, skill_md.read_text(encoding="utf-8"), force=force)
+
+
 def planned_actions(
     project_root: Path,
     bridge_tools: list,
     codex_skill: bool,
+    antigravity_skill: bool = False,
 ) -> dict:
     actions = {
         "CONSTITUTION.md": "planned",
@@ -331,12 +339,17 @@ def planned_actions(
     }
     for display_name in bridge_pointer_targets(project_root, bridge_tools):
         actions[display_name] = "planned"
+    skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
     if codex_skill:
-        skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
         if skill_md.exists():
             actions[".agents/skills/polis-protocol/SKILL.md"] = "planned"
         else:
             print("  warning: SKILL.md not found at skill root; skipping codex skill copy.")
+    if antigravity_skill:
+        if skill_md.exists():
+            actions[".antigravity/skills/polis-protocol/SKILL.md"] = "planned"
+        else:
+            print("  warning: SKILL.md not found at skill root; skipping antigravity skill copy.")
     return actions
 
 
@@ -383,6 +396,9 @@ def main():
     parser.add_argument("--bridge-tools", default="claude,codex,gemini,aider", help="Which entry pointers to write at project root.")
     parser.add_argument("--codex-skill", dest="codex_skill", action="store_true", default=True)
     parser.add_argument("--no-codex-skill", dest="codex_skill", action="store_false")
+    parser.add_argument("--antigravity-skill", dest="antigravity_skill", action="store_true", default=True,
+                        help="Mirror SKILL.md into .antigravity/skills/ for Google Antigravity.")
+    parser.add_argument("--no-antigravity-skill", dest="antigravity_skill", action="store_false")
     parser.add_argument("--dry-run", action="store_true", help="Preview scaffolded files without writing anything.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing files.")
     args = parser.parse_args()
@@ -404,7 +420,7 @@ def main():
     bridge_tools = [t.strip() for t in args.bridge_tools.split(",") if t.strip()]
 
     if args.dry_run:
-        actions = planned_actions(project_root, bridge_tools, args.codex_skill)
+        actions = planned_actions(project_root, bridge_tools, args.codex_skill, args.antigravity_skill)
         print_report(
             polis_root,
             args.agent_id,
@@ -491,14 +507,23 @@ def main():
         actions[display_name] = result
 
     # Codex-format skill copy.
+    skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
     if args.codex_skill:
-        skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
         if skill_md.exists():
             actions[".agents/skills/polis-protocol/SKILL.md"] = write_codex_skill_copy(
                 project_root, skill_md, args.force
             )
         else:
             print("  warning: SKILL.md not found at skill root; skipping codex skill copy.")
+
+    # Antigravity-format skill copy (Google Antigravity reads .antigravity/skills/).
+    if args.antigravity_skill:
+        if skill_md.exists():
+            actions[".antigravity/skills/polis-protocol/SKILL.md"] = write_antigravity_skill_copy(
+                project_root, skill_md, args.force
+            )
+        else:
+            print("  warning: SKILL.md not found at skill root; skipping antigravity skill copy.")
 
     print_report(polis_root, args.agent_id, args.vendor, args.model, actions)
 
