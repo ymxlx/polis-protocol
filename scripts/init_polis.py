@@ -18,7 +18,7 @@ Optional arguments:
     --languages en,es,he
     --bridge-tools claude,codex,gemini,aider  # which entry pointers to write
     --codex-skill / --no-codex-skill       # write .agents/skills/polis-protocol/SKILL.md
-    --antigravity-skill / --no-antigravity-skill  # write .antigravity/skills/polis-protocol/SKILL.md
+    --antigravity-skill / --no-antigravity-skill  # write .agents/skills/polis-protocol/SKILL.md (Antigravity reads this)
     --dry-run                              # preview files without writing
     --force                                 # overwrite existing files
 
@@ -315,8 +315,12 @@ def write_codex_skill_copy(project_root: Path, skill_md: Path, force: bool) -> s
 
 
 def write_antigravity_skill_copy(project_root: Path, skill_md: Path, force: bool) -> str:
-    """Mirror SKILL.md into the location Google Antigravity reads skills from."""
-    target = project_root / ".antigravity" / "skills" / "polis-protocol" / "SKILL.md"
+    """Mirror SKILL.md into the location Google Antigravity reads skills from.
+
+    Antigravity loads workspace skills from .agents/skills/ (the same path the
+    Codex CLI uses); the legacy .antigravity/skills/ folder is never read.
+    """
+    target = project_root / ".agents" / "skills" / "polis-protocol" / "SKILL.md"
     return write_if_absent(target, skill_md.read_text(encoding="utf-8"), force=force)
 
 
@@ -347,7 +351,7 @@ def planned_actions(
             print("  warning: SKILL.md not found at skill root; skipping codex skill copy.")
     if antigravity_skill:
         if skill_md.exists():
-            actions[".antigravity/skills/polis-protocol/SKILL.md"] = "planned"
+            actions[".agents/skills/polis-protocol/SKILL.md"] = "planned"
         else:
             print("  warning: SKILL.md not found at skill root; skipping antigravity skill copy.")
     return actions
@@ -397,7 +401,7 @@ def main():
     parser.add_argument("--codex-skill", dest="codex_skill", action="store_true", default=True)
     parser.add_argument("--no-codex-skill", dest="codex_skill", action="store_false")
     parser.add_argument("--antigravity-skill", dest="antigravity_skill", action="store_true", default=True,
-                        help="Mirror SKILL.md into .antigravity/skills/ for Google Antigravity.")
+                        help="Mirror SKILL.md into .agents/skills/ for Google Antigravity.")
     parser.add_argument("--no-antigravity-skill", dest="antigravity_skill", action="store_false")
     parser.add_argument("--dry-run", action="store_true", help="Preview scaffolded files without writing anything.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing files.")
@@ -516,10 +520,11 @@ def main():
         else:
             print("  warning: SKILL.md not found at skill root; skipping codex skill copy.")
 
-    # Antigravity-format skill copy (Google Antigravity reads .antigravity/skills/).
-    if args.antigravity_skill:
+    # Antigravity skill copy. Antigravity reads .agents/skills/ — the same path the
+    # Codex copy uses — so only write it here if the Codex copy above didn't already.
+    if args.antigravity_skill and not args.codex_skill:
         if skill_md.exists():
-            actions[".antigravity/skills/polis-protocol/SKILL.md"] = write_antigravity_skill_copy(
+            actions[".agents/skills/polis-protocol/SKILL.md"] = write_antigravity_skill_copy(
                 project_root, skill_md, args.force
             )
         else:
