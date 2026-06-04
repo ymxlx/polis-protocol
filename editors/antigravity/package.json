@@ -2,7 +2,7 @@
   "name": "polis-protocol",
   "displayName": "Polis Protocol",
   "description": "Coordinate multi-vendor AI agents as a self-improving team — a learning router assigns work by track record and citizens can amend the protocol's own rules. Works in Antigravity, Cursor, and any VS Code-based editor.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "yehudalevy-collab",
   "license": "MIT",
   "icon": "icon.png",

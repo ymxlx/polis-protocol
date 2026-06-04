@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- New brand icon: a hexagonal "polis" of connected citizen-nodes around a glowing central router. Replaces the placeholder banner crop.
+
 ## 0.1.0
 
 Initial release.
