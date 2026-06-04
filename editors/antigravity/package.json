@@ -1,0 +1,125 @@
+{
+  "name": "polis-protocol",
+  "displayName": "Polis Protocol",
+  "description": "Coordinate multi-vendor AI agents as a self-improving team — a learning router assigns work by track record and citizens can amend the protocol's own rules. Works in Antigravity, Cursor, and any VS Code-based editor.",
+  "version": "0.1.0",
+  "publisher": "yehudalevy-collab",
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "keywords": [
+    "antigravity",
+    "agent",
+    "multi-agent",
+    "orchestration",
+    "agent skills",
+    "coordination",
+    "routing",
+    "gemini",
+    "claude",
+    "codex"
+  ],
+  "galleryBanner": {
+    "color": "#0B0E14",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yehudalevy-collab/polis-protocol.git"
+  },
+  "homepage": "https://github.com/yehudalevy-collab/polis-protocol",
+  "bugs": {
+    "url": "https://github.com/yehudalevy-collab/polis-protocol/issues"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "workspaceContains:_polis/CONSTITUTION.md",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "polis.init",
+        "title": "Polis: Found a polis (initialize workspace)",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "polis.installSkillGlobally",
+        "title": "Polis: Install skill into Antigravity (global)",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "polis.installSkillWorkspace",
+        "title": "Polis: Install skill into this workspace",
+        "icon": "$(folder-active)"
+      },
+      {
+        "command": "polis.route",
+        "title": "Polis: Route an open contract (explain)",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "polis.openConstitution",
+        "title": "Polis: Open CONSTITUTION.md",
+        "icon": "$(law)"
+      },
+      {
+        "command": "polis.refresh",
+        "title": "Polis: Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "polis",
+          "title": "Polis Protocol",
+          "icon": "icon.png"
+        }
+      ]
+    },
+    "views": {
+      "polis": [
+        {
+          "id": "polisContracts",
+          "name": "Open Contracts"
+        },
+        {
+          "id": "polisCitizens",
+          "name": "Citizens"
+        },
+        {
+          "id": "polisActions",
+          "name": "Actions"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "polis.refresh",
+          "when": "view == polisContracts",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        { "command": "polis.init" },
+        { "command": "polis.installSkillGlobally" },
+        { "command": "polis.installSkillWorkspace" },
+        { "command": "polis.route" },
+        { "command": "polis.openConstitution" },
+        { "command": "polis.refresh" }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "echo 'no build step — plain JS extension'"
+  }
+}
