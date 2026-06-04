@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Fix the Activity Bar icon rendering as a solid square. The view container now uses a dedicated transparent monochrome SVG mark (the colored badge is kept for the marketplace listing).
+
 ## 0.1.1
 
 - New brand icon: a hexagonal "polis" of connected citizen-nodes around a glowing central router. Replaces the placeholder banner crop.
