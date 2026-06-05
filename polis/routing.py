@@ -43,6 +43,10 @@ WEIGHTS_DEFAULT = {
     "avail": 0.10,
 }
 
+# Accepted lessons can nudge routing, but never dominate it: the summed effect
+# applied to any one citizen for a contract is clamped to +/- LESSON_CAP.
+LESSON_CAP = 0.15
+
 COST_FIT = {
     # cost_ceiling -> citizen.cost_envelope.relative -> score
     ("low", "low"): 1.0,
@@ -93,6 +97,69 @@ def load_routing_stats(polis_root: Path) -> dict:
     if not stats_path.exists():
         return {"explore_rate": 0.15, "tags": {}}
     return yaml.safe_load(stats_path.read_text(encoding="utf-8")) or {"explore_rate": 0.15, "tags": {}}
+
+
+def load_lessons(polis_root: Path) -> list:
+    """Return accepted lessons that declare a structured routing_effect.
+
+    A lesson influences routing only if it is accepted (``status: accepted`` or
+    no status field at all) and carries a ``routing_effect`` list of
+    ``{citizen, tags, delta}`` entries. Lessons without ``routing_effect`` are
+    advisory prose only and never change scores.
+    """
+    lessons = []
+    lessons_dir = polis_root / "lessons"
+    if not lessons_dir.exists():
+        return lessons
+    for path in sorted(lessons_dir.rglob("*.md")):
+        try:
+            fm, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
+        except yaml.YAMLError:
+            continue
+        if not fm:
+            continue
+        if str(fm.get("status", "accepted")).lower() != "accepted":
+            continue
+        effects = fm.get("routing_effect")
+        if not isinstance(effects, list):
+            continue
+        lessons.append({
+            "lesson_id": fm.get("lesson_id", path.stem),
+            "routing_effect": effects,
+        })
+    return lessons
+
+
+def lessons_score(citizen_id: str, required_tags: list, lessons: list) -> tuple:
+    """Return (bounded_bonus, [applied_lesson_ids]) for a citizen on these tags.
+
+    Each routing_effect entry adds its ``delta`` when its ``citizen`` matches and
+    its ``tags`` intersect the contract's required_tags (an empty/omitted tag
+    list means "applies to any tag"). The summed bonus is clamped to
+    +/- ``LESSON_CAP`` so lessons nudge rather than override the base score.
+    """
+    if not required_tags or not lessons:
+        return 0.0, []
+    req = set(required_tags)
+    raw = 0.0
+    applied = []
+    for lesson in lessons:
+        for effect in lesson.get("routing_effect", []) or []:
+            if effect.get("citizen") != citizen_id:
+                continue
+            effect_tags = set(effect.get("tags", []) or [])
+            if effect_tags and not (effect_tags & req):
+                continue
+            try:
+                delta = float(effect.get("delta", 0.0))
+            except (TypeError, ValueError):
+                continue
+            if delta == 0.0:
+                continue
+            raw += delta
+            applied.append(lesson["lesson_id"])
+    bonus = max(-LESSON_CAP, min(LESSON_CAP, raw))
+    return bonus, applied
 
 
 def load_citizen_status(polis_root: Path, agent_id: str) -> dict:
@@ -160,7 +227,7 @@ def availability_score(status: dict) -> float:
     return 0.5
 
 
-def score_citizen(citizen_id: str, card: dict, status: dict, contract: dict, stats: dict, weights: dict) -> dict:
+def score_citizen(citizen_id: str, card: dict, status: dict, contract: dict, stats: dict, weights: dict, lessons: list = None) -> dict:
     required_tags = contract.get("required_tags") or []
     cost_ceiling = contract.get("cost_ceiling", "medium")
 
@@ -168,8 +235,10 @@ def score_citizen(citizen_id: str, card: dict, status: dict, contract: dict, sta
     s = self_rating_score(card, required_tags)
     c = cost_fit_score(card, cost_ceiling)
     a = availability_score(status)
+    lesson_bonus, applied_lessons = lessons_score(citizen_id, required_tags, lessons or [])
 
-    total = weights["history"] * h + weights["self"] * s + weights["cost"] * c + weights["avail"] * a
+    base = weights["history"] * h + weights["self"] * s + weights["cost"] * c + weights["avail"] * a
+    total = base + lesson_bonus
 
     return {
         "citizen": citizen_id,
@@ -177,6 +246,8 @@ def score_citizen(citizen_id: str, card: dict, status: dict, contract: dict, sta
         "self_rating": s,
         "cost_fit": c,
         "availability": a,
+        "lessons": lesson_bonus,
+        "applied_lessons": applied_lessons,
         "total": total,
     }
 
@@ -364,6 +435,7 @@ def main():
         raise SystemExit("No registered citizens found; nothing to route to.")
 
     stats = load_routing_stats(polis_root)
+    lessons = load_lessons(polis_root)
     explore_rate = stats.get("explore_rate", 0.15)
 
     if args.adaptive:
@@ -376,7 +448,7 @@ def main():
     scores = []
     for cid, card in citizens.items():
         status = load_citizen_status(polis_root, cid)
-        scores.append(score_citizen(cid, card, status, contract_fm, stats, WEIGHTS_DEFAULT))
+        scores.append(score_citizen(cid, card, status, contract_fm, stats, WEIGHTS_DEFAULT, lessons))
 
     rng = random.Random(args.seed)
     chosen, is_exploration, chosen_score = pick_recommendation(scores, explore_rate, rng)
@@ -386,7 +458,10 @@ def main():
         for s in sorted(scores, key=lambda x: x["total"], reverse=True):
             print(f"  {s['citizen']:30s}  total={s['total']:.3f}  "
                   f"hist={s['historical']:.2f}  self={s['self_rating']:.2f}  "
-                  f"cost={s['cost_fit']:.2f}  avail={s['availability']:.2f}")
+                  f"cost={s['cost_fit']:.2f}  avail={s['availability']:.2f}  "
+                  f"lessons={s.get('lessons', 0.0):+.2f}")
+            if s.get("applied_lessons"):
+                print(f"  {'':30s}    ↳ lessons applied: {', '.join(s['applied_lessons'])}")
         print(f"\nExplore rate: {explore_rate:.2f}")
 
     print(f"\nRecommendation: {chosen}")

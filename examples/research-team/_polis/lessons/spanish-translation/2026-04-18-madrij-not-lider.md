@@ -7,6 +7,11 @@ related_contracts:
   - contracts/settled/spanish-rollout
   - contracts/settled/parent-newsletter-issue-2
 quality_impact: 4
+status: accepted
+routing_effect:
+  - citizen: gemini-translator-pesaj
+    tags: [spanish-translation, cultural-vocabulary-judaism]
+    delta: 0.10
 ---
 
 # Lesson: Spanish translations for BA México need movement vocabulary, not Hispanic-corporate Spanish
