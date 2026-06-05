@@ -438,6 +438,15 @@ def main():
     lessons = load_lessons(polis_root)
     explore_rate = stats.get("explore_rate", 0.15)
 
+    # Schema v2: prefer routing policy from _polis/polis.yml when present.
+    weights = WEIGHTS_DEFAULT
+    from . import config as _config
+    if _config.has_config(polis_root):
+        _cfg = _config.load_config(polis_root)
+        _routing_cfg = _cfg.get("routing", {}) or {}
+        weights = _routing_cfg.get("weights", WEIGHTS_DEFAULT)
+        explore_rate = _routing_cfg.get("explore_rate", explore_rate)
+
     if args.adaptive:
         # Use the lowest leader_confidence across required tags to widen exploration.
         required_tags = contract_fm.get("required_tags") or []
@@ -448,7 +457,7 @@ def main():
     scores = []
     for cid, card in citizens.items():
         status = load_citizen_status(polis_root, cid)
-        scores.append(score_citizen(cid, card, status, contract_fm, stats, WEIGHTS_DEFAULT, lessons))
+        scores.append(score_citizen(cid, card, status, contract_fm, stats, weights, lessons))
 
     rng = random.Random(args.seed)
     chosen, is_exploration, chosen_score = pick_recommendation(scores, explore_rate, rng)

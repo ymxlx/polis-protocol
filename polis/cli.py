@@ -20,6 +20,7 @@ commands:
   route       Recommend a citizen for an open contract (use --explain)
   reconcile   Rebuild routing_stats.yml from settled contracts
   status      Summarize the polis: citizens, open/settled contracts, routing
+  doctor      Validate the polis (schema, cards, contracts, lessons)
   version     Print the polis version
 
 Run `polis <command> --help` for command-specific options.
@@ -79,6 +80,43 @@ def cmd_status(argv):
     return 0
 
 
+def cmd_doctor(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis doctor")
+    ap.add_argument("--polis-root", default=None,
+                    help="Path to _polis/ (default: auto-detect from cwd)")
+    ap.add_argument("--write-config", action="store_true",
+                    help="Create/update _polis/polis.yml from defaults, then validate")
+    args = ap.parse_args(argv)
+
+    root = Path(args.polis_root).resolve() if args.polis_root else _find_polis_root()
+    if not root or not root.exists():
+        raise SystemExit("No _polis/ found. Run `polis init` first (or pass --polis-root).")
+
+    from . import doctor, config as _config
+
+    if args.write_config:
+        existing = _config.load_config(root) if _config.has_config(root) else None
+        path = _config.write_config(root, existing)
+        print(f"wrote {path}")
+
+    result = doctor.run_doctor(root)
+    for item in result["info"]:
+        print(f"  info : {item}")
+    for warning in result["warnings"]:
+        print(f"  warn : {warning}")
+    for error in result["errors"]:
+        print(f"  ERROR: {error}")
+
+    if result["ok"]:
+        suffix = f" ({len(result['warnings'])} warning(s))" if result["warnings"] else ""
+        print(f"\npolis doctor: OK{suffix}")
+        return 0
+    print(f"\npolis doctor: {len(result['errors'])} error(s)")
+    return 1
+
+
 def _delegate(module_name, argv, prepend=None):
     """Run a legacy module's main() by reconstructing sys.argv."""
     from . import routing, initializer  # noqa: F401
@@ -110,6 +148,8 @@ def main(argv=None):
         return _delegate("routing", rest, prepend=["--reconcile"])
     if cmd == "status":
         return cmd_status(rest)
+    if cmd == "doctor":
+        return cmd_doctor(rest)
 
     print(f"Unknown command: {cmd}\n")
     print(USAGE)

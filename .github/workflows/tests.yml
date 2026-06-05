@@ -30,6 +30,9 @@ jobs:
       - name: Run lessons-routing regression test
         run: python3 scripts/test_lessons_routing.py
 
+      - name: Run doctor + config test
+        run: python3 scripts/test_doctor.py
+
       - name: Smoke-test init_polis.py
         run: |
           mkdir -p /tmp/smoke
