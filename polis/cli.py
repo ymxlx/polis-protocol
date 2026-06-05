@@ -23,6 +23,9 @@ commands:
   doctor      Validate the polis (schema, cards, contracts, lessons)
   verify      Check capability-card content-integrity hashes (--fix to stamp)
   migrate     Upgrade the polis schema (--plan / --apply / --rollback)
+  reserve     Reserve files so other agents don't collide (--as <citizen>)
+  release     Release your file reservations (--as <citizen>)
+  reservations  List active file reservations
   version     Print the polis version
 
 Run `polis <command> --help` for command-specific options.
@@ -224,6 +227,76 @@ def cmd_migrate(argv):
     return 0
 
 
+def cmd_reserve(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis reserve")
+    ap.add_argument("paths", nargs="+", help="File or directory paths to reserve")
+    ap.add_argument("--as", dest="citizen", required=True, help="Citizen making the reservation")
+    ap.add_argument("--ttl-min", type=int, default=None, help="Auto-expire after N minutes")
+    ap.add_argument("--note", default=None, help="Why you're reserving these paths")
+    ap.add_argument("--polis-root", default=None)
+    args = ap.parse_args(argv)
+
+    root = Path(args.polis_root).resolve() if args.polis_root else _find_polis_root()
+    if not root or not root.exists():
+        raise SystemExit("No _polis/ found. Run `polis init` first (or pass --polis-root).")
+
+    from . import reservations
+    res = reservations.reserve(root, args.citizen, args.paths, ttl_minutes=args.ttl_min, note=args.note)
+    if not res["ok"]:
+        print("Reservation REJECTED — these paths are held by other citizens:")
+        for c in res["conflicts"]:
+            print(f"  {c['path']}  ← held by {c['holder']} (as {c['held_path']})")
+        return 1
+    ttl = f", expires in {args.ttl_min}m" if args.ttl_min else ""
+    print(f"Reserved {len(res['reservation']['paths'])} path(s) for {args.citizen}{ttl}.")
+    return 0
+
+
+def cmd_release(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis release")
+    ap.add_argument("paths", nargs="*", help="Paths to release (default: all of yours)")
+    ap.add_argument("--as", dest="citizen", required=True, help="Citizen releasing the reservation")
+    ap.add_argument("--polis-root", default=None)
+    args = ap.parse_args(argv)
+
+    root = Path(args.polis_root).resolve() if args.polis_root else _find_polis_root()
+    if not root or not root.exists():
+        raise SystemExit("No _polis/ found. Run `polis init` first (or pass --polis-root).")
+
+    from . import reservations
+    n = reservations.release(root, args.citizen, args.paths or None)
+    print(f"Released {n} reservation(s) for {args.citizen}.")
+    return 0
+
+
+def cmd_reservations(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis reservations")
+    ap.add_argument("--polis-root", default=None)
+    args = ap.parse_args(argv)
+
+    root = Path(args.polis_root).resolve() if args.polis_root else _find_polis_root()
+    if not root or not root.exists():
+        raise SystemExit("No _polis/ found. Run `polis init` first (or pass --polis-root).")
+
+    from . import reservations
+    active = reservations.active_reservations(root)
+    if not active:
+        print("No active reservations.")
+        return 0
+    print("Active reservations:")
+    for res in active:
+        exp = res.get("expires_at") or "no expiry"
+        note = f"  — {res['note']}" if res.get("note") else ""
+        print(f"  {res.get('citizen')}: {', '.join(res.get('paths', []))}  (expires: {exp}){note}")
+    return 0
+
+
 def _delegate(module_name, argv, prepend=None):
     """Run a legacy module's main() by reconstructing sys.argv."""
     from . import routing, initializer  # noqa: F401
@@ -261,6 +334,12 @@ def main(argv=None):
         return cmd_verify(rest)
     if cmd == "migrate":
         return cmd_migrate(rest)
+    if cmd == "reserve":
+        return cmd_reserve(rest)
+    if cmd == "release":
+        return cmd_release(rest)
+    if cmd == "reservations":
+        return cmd_reservations(rest)
 
     print(f"Unknown command: {cmd}\n")
     print(USAGE)

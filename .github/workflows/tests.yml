@@ -39,6 +39,9 @@ jobs:
       - name: Run migrate (plan/apply/rollback) test
         run: python3 scripts/test_migrate.py
 
+      - name: Run file-reservations test
+        run: python3 scripts/test_reservations.py
+
       - name: Smoke-test init_polis.py
         run: |
           mkdir -p /tmp/smoke
