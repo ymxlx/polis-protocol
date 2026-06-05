@@ -42,6 +42,9 @@ jobs:
       - name: Run file-reservations test
         run: python3 scripts/test_reservations.py
 
+      - name: Run contract-lifecycle test
+        run: python3 scripts/test_contracts.py
+
       - name: Smoke-test init_polis.py
         run: |
           mkdir -p /tmp/smoke

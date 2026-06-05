@@ -19,6 +19,7 @@ commands:
   init        Scaffold or repair a _polis/ workspace and register an agent
   route       Recommend a citizen for an open contract (use --explain)
   reconcile   Rebuild routing_stats.yml from settled contracts
+  contract    Manage contracts: open | list | claim | settle | abandon
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
   verify      Check capability-card content-integrity hashes (--fix to stamp)
@@ -227,6 +228,83 @@ def cmd_migrate(argv):
     return 0
 
 
+def _resolve_root(value):
+    root = Path(value).resolve() if value else _find_polis_root()
+    if not root or not root.exists():
+        raise SystemExit("No _polis/ found. Run `polis init` first (or pass --polis-root).")
+    return root
+
+
+def cmd_contract(argv):
+    import argparse
+
+    sub = argv[0] if argv else ""
+    rest = argv[1:]
+    from . import contracts
+
+    if sub == "list":
+        ap = argparse.ArgumentParser(prog="polis contract list")
+        ap.add_argument("--state", default="open", choices=["open", "settled", "abandoned"])
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        rows = contracts.list_contracts(root, a.state)
+        if not rows:
+            print(f"No {a.state} contracts.")
+            return 0
+        for r in rows:
+            owner = r["owner"] or "—"
+            print(f"  {r['contract_id']:32s} [{r['status']:9s}] owner={owner}  {r['title']}")
+        return 0
+
+    if sub == "open":
+        ap = argparse.ArgumentParser(prog="polis contract open")
+        ap.add_argument("--title", required=True)
+        ap.add_argument("--tags", default="", help="comma-separated required_tags")
+        ap.add_argument("--by", required=True, help="opened_by citizen")
+        ap.add_argument("--stakes", default="medium", choices=["low", "medium", "high"])
+        ap.add_argument("--cost-ceiling", default="medium", choices=["low", "medium", "high"])
+        ap.add_argument("--deadline", default=None)
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        tags = [t.strip() for t in a.tags.split(",") if t.strip()]
+        res = contracts.open_contract(root, a.title, tags, a.by, stakes=a.stakes,
+                                      cost_ceiling=a.cost_ceiling, deadline=a.deadline)
+        print(f"Opened contract {res['contract_id']} -> {res['path']}")
+        return 0
+
+    if sub in ("claim", "settle", "abandon"):
+        ap = argparse.ArgumentParser(prog=f"polis contract {sub}")
+        ap.add_argument("contract_id")
+        ap.add_argument("--polis-root", default=None)
+        if sub == "claim":
+            ap.add_argument("--as", dest="citizen", required=True)
+            ap.add_argument("--force", action="store_true")
+        if sub == "settle":
+            ap.add_argument("--quality", type=int, required=True, help="quality score 1-5")
+            ap.add_argument("--minutes", type=int, default=None)
+            ap.add_argument("--by", default=None)
+        if sub == "abandon":
+            ap.add_argument("--reason", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        if sub == "claim":
+            res = contracts.claim_contract(root, a.contract_id, a.citizen, force=a.force)
+        elif sub == "settle":
+            res = contracts.settle_contract(root, a.contract_id, a.quality, minutes=a.minutes, by=a.by)
+        else:
+            res = contracts.abandon_contract(root, a.contract_id, reason=a.reason)
+        if not res["ok"]:
+            print(f"{sub} failed: {res['reason']}")
+            return 1
+        print(f"{sub}: {a.contract_id} ok")
+        return 0
+
+    print("usage: polis contract <open|list|claim|settle|abandon> [...]")
+    return 2
+
+
 def cmd_reserve(argv):
     import argparse
 
@@ -328,6 +406,8 @@ def main(argv=None):
         return _delegate("routing", rest, prepend=["--reconcile"])
     if cmd == "status":
         return cmd_status(rest)
+    if cmd == "contract":
+        return cmd_contract(rest)
     if cmd == "doctor":
         return cmd_doctor(rest)
     if cmd == "verify":
