@@ -74,7 +74,7 @@ A *polis* is a small Greek city — a few thousand people who all know each othe
 | Polis | Polis Protocol |
 |---|---|
 | Citizen | An AI agent from any vendor |
-| Capability card | A signed YAML manifest of what an agent can do |
+| Capability card | A content-hashed YAML manifest of what an agent can do |
 | Contract | A structured task with intent, assignment, and settlement |
 | Chronicle | An append-only event log every citizen reads on session start |
 | Lesson | A retrospective filed by capability tag |
@@ -273,7 +273,7 @@ Both produce the same recommendation. Citizens can always override.
 | Path | What it is |
 |---|---|
 | [`SKILL.md`](SKILL.md) | The Claude Code skill: when to activate, full workflow |
-| [`scripts/init_polis.py`](scripts/init_polis.py) | Bootstrap a new polis (idempotent, signed cards, bridge pointers) |
+| [`scripts/init_polis.py`](scripts/init_polis.py) | Bootstrap a new polis (idempotent, content-hashed cards, bridge pointers) |
 | [`scripts/route_contract.py`](scripts/route_contract.py) | The bandit router and the `--reconcile` job that rebuilds stats from settled contracts |
 | [`templates/POLIS_CONSTITUTION.md`](templates/POLIS_CONSTITUTION.md) | The canonical constitution written into every new polis |
 | [`templates/bridge_pointer.md`](templates/bridge_pointer.md) | The short `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` that points each tool at the constitution |

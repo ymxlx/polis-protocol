@@ -29,7 +29,7 @@ It's **vendor-agnostic**: Antigravity, Claude, Codex, and Gemini agents can all 
 
 | Concept | What it is |
 |---|---|
-| **Citizen** | An agent with a signed capability card under `_polis/citizens/` |
+| **Citizen** | An agent with a content-hashed capability card under `_polis/citizens/` |
 | **Contract** | A task with `required_tags` — not assigned to a fixed role |
 | **Router** | An ε-greedy bandit that scores citizens on their track record per tag |
 | **Lesson** | What a settled contract teaches; folded back into routing stats |

@@ -1,6 +1,6 @@
 ---
 name: polis-protocol
-description: Set up a self-optimizing multi-vendor AI agent team using the Polis Protocol — a markdown-based "small city" where each agent is a citizen with a signed capability card, tasks are structured contracts routed to whoever has the strongest track record by a learning bandit, settled contracts produce lessons that compound into team memory, and citizens can ratify amendments to the protocol itself. Use whenever several AI agents (Anthropic, OpenAI, Google, or any vendor) collaborate on one project and "who should do this" is a real question; when you want work routed to whichever model is best at it; when you want a team that measurably gets better over time; or to set up a new polis, register or join as a citizen, open, claim, or settle a contract, file a lesson, propose or vote on an amendment, run a chavruta review before a high-stakes irreversible action, troubleshoot a stalled contract or router pathology, override a routing recommendation, or migrate from a simpler shared-vault setup (e.g. agent-vault) to add routing and self-improvement. Also trigger on "_polis folder", "polis", "capability card", "task contract", "chronicle.md", "chavruta review", "bandit routing", "agent routing", "cross-vendor coordination", "self-improving agent team", "register a citizen", "ratify an amendment", "CONSTITUTION.md", even when the user does not explicitly name the protocol. Pick this when optimization and team development matter, not only communication; for pure note-passing between agents without routing, prefer agent-vault.
+description: Set up a self-optimizing multi-vendor AI agent team using the Polis Protocol — a markdown-based "small city" where each agent is a citizen with a content-hashed capability card, tasks are structured contracts routed to whoever has the strongest track record by a learning bandit, settled contracts produce lessons that compound into team memory, and citizens can ratify amendments to the protocol itself. Use whenever several AI agents (Anthropic, OpenAI, Google, or any vendor) collaborate on one project and "who should do this" is a real question; when you want work routed to whichever model is best at it; when you want a team that measurably gets better over time; or to set up a new polis, register or join as a citizen, open, claim, or settle a contract, file a lesson, propose or vote on an amendment, run a chavruta review before a high-stakes irreversible action, troubleshoot a stalled contract or router pathology, override a routing recommendation, or migrate from a simpler shared-vault setup (e.g. agent-vault) to add routing and self-improvement. Also trigger on "_polis folder", "polis", "capability card", "task contract", "chronicle.md", "chavruta review", "bandit routing", "agent routing", "cross-vendor coordination", "self-improving agent team", "register a citizen", "ratify an amendment", "CONSTITUTION.md", even when the user does not explicitly name the protocol. Pick this when optimization and team development matter, not only communication; for pure note-passing between agents without routing, prefer agent-vault.
 ---
 
 # Polis Protocol: A Self-Optimizing City of Agents
@@ -49,7 +49,7 @@ A polis lives inside a folder called `_polis/` at the project root. The undersco
 │   ├── chronicle.md                         (append-only event log)
 │   ├── citizens/
 │   │   └── <agent-id>/
-│   │       ├── capability_card.yml          (signed capability manifest)
+│   │       ├── capability_card.yml          (content-hashed capability manifest)
 │   │       ├── status.md                    (current state, last-seen pointer)
 │   │       ├── inbox.md                     (messages from other citizens)
 │   │       └── journal.md                   (private working notes)
@@ -142,7 +142,7 @@ latency_envelope:
 standing_instructions: |
   - Prefer simple, accessible vocabulary in written outputs.
   - When uncertain, ask before guessing.
-signature: "claude-research-pesaj:2026-05-14:sha256:abc123..."
+content_hash: "sha256:abc123..."   # tamper-evidence, not a cryptographic signature
 ```
 
 A few rules that keep this useful rather than ceremonial:
@@ -150,7 +150,7 @@ A few rules that keep this useful rather than ceremonial:
 - **Self-ratings are starting points, not truth.** They seed the router. Actual performance (recorded in `routing_stats.yml`) takes over within a handful of tasks per tag.
 - **Capability tags should be specific.** `frontend-code` is too vague; `react-component-design`, `css-responsive-layout`, and `tailwind-styling` are useful. Tags accrete naturally as contracts get written.
 - **Edit your own card freely.** The card is a living document. When you learn you are bad at something, lower the rating. When you pick up a new tool, add the tag.
-- **The signature is integrity, not security.** It is a hash of the card contents plus the agent ID, so other citizens can tell if a card was edited by someone other than the owner. Real cryptographic identity is out of scope for a markdown protocol.
+- **The `content_hash` is tamper-evidence, not security.** It is a SHA-256 of the card's content, so other citizens can tell if a card was edited since it was last stamped (`polis verify`). It does **not** prove *who* made the edit — real cryptographic identity is out of scope for a markdown protocol, which is why we don't call it a "signature".
 
 When a new agent joins the polis, they write their own card. They do not need anyone's permission. The Register is open by design.
 
@@ -324,7 +324,7 @@ A short list. The extended version is in `references/troubleshooting.md`.
 - **A citizen has gone silent.** Check their `status.md` and last chronicle entry. If a contract is stuck, post to their inbox. If they have been inactive past the project's stale threshold (default 14 days), file a one-amendment-line transfer of ownership and proceed.
 - **Two citizens claimed the same contract.** First-write-wins on the contract's `owner:` field. The losing citizen posts a chronicle line, drops the claim, and either picks another contract or posts to the winner's inbox offering help.
 - **The router keeps picking the wrong citizen.** Check `routing_stats.yml`; it may be cold-start (not enough data). Override manually for a few contracts to seed the policy. If it persists, propose an amendment to the routing weights.
-- **A capability card was edited by someone other than the owner.** The signature mismatch will flag it. Treat as a sync conflict, restore from history, and post a chronicle line.
+- **A capability card was edited by someone other than the owner.** The `content_hash` mismatch (`polis verify`) will flag it. Treat as a sync conflict, restore from history, and post a chronicle line.
 - **An amendment is stuck without a quorum.** Lower the activity threshold temporarily, or merge the amendment with related proposals to attract more responses. Amendments that sit for 30 days auto-expire.
 - **The polis is growing too large.** Roll over `chronicle.md` quarterly (`chronicle-YYYY-Qn.md`) and archive settled contracts older than 90 days. Lessons never roll over; they are the team's memory.
 

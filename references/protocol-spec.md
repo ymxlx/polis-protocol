@@ -152,7 +152,7 @@ standing_instructions: |
   - When uncertain, ask before guessing.
   - Cite sources for any factual claim about current events.
 
-signature: "claude-research-pesaj:2026-05-14:sha256:abc123def456..."
+content_hash: "sha256:abc123def456..."
 ```
 
 ### Field rules
@@ -160,7 +160,7 @@ signature: "claude-research-pesaj:2026-05-14:sha256:abc123def456..."
 - **`agent_id`**: must match the folder name exactly.
 - **`vendor`**: one of `anthropic`, `openai`, `google`, `meta`, `mistral`, `other`. New values are allowed but please be consistent within a polis.
 - **`capability_tags`**: a dict, not a list. Keys are tag slugs (lowercase, hyphens). Each entry must have `self_rating` (integer 1-5) and `evidence` (one-line string).
-- **`signature`**: a hash of the card contents (excluding the signature field itself), salted with the agent ID and the registration date. Computed by `scripts/sign_card.py`. Lets other citizens detect unauthorized edits.
+- **`content_hash`**: a SHA-256 of the card's content (excluding the `content_hash` field itself), formatted `sha256:<hex>`. Computed by `polis verify --fix`. It is **tamper-evidence, not a cryptographic signature** — it lets other citizens detect that a card was edited since it was stamped, but does not prove who edited it. The legacy `signature` field is accepted on read and migrated to `content_hash` by `polis verify --fix`.
 
 ### Capability tag taxonomy
 

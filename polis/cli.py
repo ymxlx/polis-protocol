@@ -21,6 +21,7 @@ commands:
   reconcile   Rebuild routing_stats.yml from settled contracts
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
+  verify      Check capability-card content-integrity hashes (--fix to stamp)
   version     Print the polis version
 
 Run `polis <command> --help` for command-specific options.
@@ -117,6 +118,64 @@ def cmd_doctor(argv):
     return 1
 
 
+def cmd_verify(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis verify")
+    ap.add_argument("--polis-root", default=None,
+                    help="Path to _polis/ (default: auto-detect from cwd)")
+    ap.add_argument("--fix", action="store_true",
+                    help="(Re)stamp every capability card with a fresh content_hash")
+    args = ap.parse_args(argv)
+
+    root = Path(args.polis_root).resolve() if args.polis_root else _find_polis_root()
+    if not root or not root.exists():
+        raise SystemExit("No _polis/ found. Run `polis init` first (or pass --polis-root).")
+
+    import yaml  # noqa: F401  (cards are YAML; integrity needs it)
+    from . import integrity
+
+    citizens_dir = root / "citizens"
+    cards = sorted(citizens_dir.glob("*/capability_card.yml")) if citizens_dir.exists() else []
+    if not cards:
+        print("No capability cards found.")
+        return 0
+
+    bad = 0
+    for card_path in cards:
+        cid = card_path.parent.name
+        if args.fix:
+            integrity.stamp_card_file(card_path)
+            print(f"  stamped: {cid}")
+            continue
+        try:
+            card = yaml.safe_load(card_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError as e:
+            print(f"  ERROR  {cid}: cannot parse card ({e})")
+            bad += 1
+            continue
+        res = integrity.verify_card(card)
+        state = res["state"]
+        if state == "ok":
+            print(f"  ok     {cid}")
+        elif state == "mismatch":
+            print(f"  CHANGED {cid}: content_hash does not match — card edited since stamped")
+            bad += 1
+        elif state == "legacy":
+            print(f"  legacy {cid}: old signature field — run `polis verify --fix` to migrate")
+        else:
+            print(f"  unstamped {cid}: run `polis verify --fix` to add a content_hash")
+
+    if args.fix:
+        print(f"\nStamped {len(cards)} card(s).")
+        return 0
+    if bad:
+        print(f"\npolis verify: {bad} card(s) failed integrity check")
+        return 1
+    print(f"\npolis verify: {len(cards)} card(s) checked")
+    return 0
+
+
 def _delegate(module_name, argv, prepend=None):
     """Run a legacy module's main() by reconstructing sys.argv."""
     from . import routing, initializer  # noqa: F401
@@ -150,6 +209,8 @@ def main(argv=None):
         return cmd_status(rest)
     if cmd == "doctor":
         return cmd_doctor(rest)
+    if cmd == "verify":
+        return cmd_verify(rest)
 
     print(f"Unknown command: {cmd}\n")
     print(USAGE)

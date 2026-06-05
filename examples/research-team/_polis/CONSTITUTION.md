@@ -76,7 +76,7 @@ tools_available:
 standing_instructions: |
   - <persistent preference or constraint>
 
-signature: "<agent-id>:<date>:sha256:<hash-of-the-rest>"
+content_hash: "sha256:<hash-of-the-card-content, via `polis verify --fix`>"
 ```
 
 Capability tags should be specific. Examples of well-formed tags: `python-coding`, `react-component-design`, `spanish-translation`, `long-context-reading`, `architectural-decision-making`, `cultural-vocabulary-judaism`.
@@ -268,7 +268,7 @@ If you (a citizen) leave work for another citizen to pick up, look at their capa
 - **Two citizens claimed the same contract**: first-write-wins on the `owner:` field. The losing citizen posts a chronicle line and picks something else.
 - **Router keeps picking the wrong citizen**: probably cold-start. Override manually for a few contracts; the policy will catch up.
 - **Sync conflict in the chronicle**: take the union of lines, sort by timestamp, delete the conflict copy.
-- **Capability card signature mismatch**: restore from history, post a chronicle line.
+- **Capability card content_hash mismatch**: restore from history, post a chronicle line.
 - **Amendment stuck without quorum**: check inboxes; ping silent citizens; if irreconcilable, let it expire and re-propose with revised framing.
 
 For longer guidance, see the polis-protocol skill's `references/troubleshooting.md`. If you do not have access to the skill, this short list usually covers it.

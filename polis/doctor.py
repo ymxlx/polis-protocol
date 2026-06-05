@@ -6,6 +6,7 @@ the same checks. Errors fail the check (non-zero exit); warnings are advisory.
 from pathlib import Path
 
 from . import config as _config
+from . import integrity
 from .routing import load_citizens, load_lessons, parse_frontmatter
 
 
@@ -38,6 +39,13 @@ def run_doctor(polis_root) -> dict:
     for cid, card in citizens.items():
         if not card.get("capability_tags"):
             warnings.append(f"citizen {cid}: capability_card has no capability_tags")
+        integ = integrity.verify_card(card)
+        if integ["state"] == "mismatch":
+            warnings.append(f"citizen {cid}: content_hash mismatch — card edited since stamped")
+        elif integ["state"] == "legacy":
+            info.append(f"citizen {cid}: legacy signature field — run `polis verify --fix`")
+        elif integ["state"] == "unstamped":
+            info.append(f"citizen {cid}: no content_hash — run `polis verify --fix`")
 
     # Contracts parse cleanly.
     for sub in ("open", "settled"):

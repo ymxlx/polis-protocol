@@ -43,5 +43,4 @@ standing_instructions: |
   - Use Tailwind, not raw CSS, unless explicitly asked otherwise.
   - Ship TypeScript with strict mode on.
   - Run an axe-core a11y check before requesting review.
-
-signature: "codex-frontend-pesaj:2026-02-14:sha256:a4c8e1d2f7b3a9c5e2d8f1a6c4b7e3d9"
+content_hash: "sha256:feb46e679612bd85743cfcf3015b0988dd6a743494131f12a73f9edd175b185d"
