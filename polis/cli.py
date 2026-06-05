@@ -22,6 +22,7 @@ commands:
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
   verify      Check capability-card content-integrity hashes (--fix to stamp)
+  migrate     Upgrade the polis schema (--plan / --apply / --rollback)
   version     Print the polis version
 
 Run `polis <command> --help` for command-specific options.
@@ -176,6 +177,53 @@ def cmd_verify(argv):
     return 0
 
 
+def cmd_migrate(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis migrate")
+    ap.add_argument("--polis-root", default=None,
+                    help="Path to _polis/ (default: auto-detect from cwd)")
+    group = ap.add_mutually_exclusive_group()
+    group.add_argument("--plan", action="store_true", help="Show what would change (default)")
+    group.add_argument("--apply", action="store_true", help="Apply the migration (snapshots a backup first)")
+    group.add_argument("--rollback", action="store_true", help="Restore from the most recent backup")
+    args = ap.parse_args(argv)
+
+    root = Path(args.polis_root).resolve() if args.polis_root else _find_polis_root()
+    if not root or not root.exists():
+        raise SystemExit("No _polis/ found. Run `polis init` first (or pass --polis-root).")
+
+    from . import migrate
+
+    if args.rollback:
+        res = migrate.rollback(root)
+        if res.get("error"):
+            print(f"polis migrate: {res['error']}")
+            return 1
+        for item in res["restored"]:
+            print(f"  restored: {item}")
+        print(f"\nRolled back from {res['backup']} ({len(res['restored'])} change(s)).")
+        return 0
+
+    actions = migrate.plan_migration(root)
+    if not actions:
+        print("polis migrate: already up to date (schema v2).")
+        return 0
+
+    if args.apply:
+        res = migrate.apply_migration(root, actions)
+        for action in res["applied"]:
+            print(f"  {action['action']}: {action['detail']}")
+        print(f"\nApplied {len(res['applied'])} change(s). Backup: {res['backup']}")
+        print("Undo with: polis migrate --rollback")
+        return 0
+
+    print("Planned migration (dry run — re-run with --apply):")
+    for action in actions:
+        print(f"  {action['action']}: {action['detail']}")
+    return 0
+
+
 def _delegate(module_name, argv, prepend=None):
     """Run a legacy module's main() by reconstructing sys.argv."""
     from . import routing, initializer  # noqa: F401
@@ -211,6 +259,8 @@ def main(argv=None):
         return cmd_doctor(rest)
     if cmd == "verify":
         return cmd_verify(rest)
+    if cmd == "migrate":
+        return cmd_migrate(rest)
 
     print(f"Unknown command: {cmd}\n")
     print(USAGE)
