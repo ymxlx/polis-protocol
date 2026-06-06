@@ -20,6 +20,7 @@ commands:
   route       Recommend a citizen for an open contract (use --explain)
   reconcile   Rebuild routing_stats.yml from settled contracts
   contract    Manage contracts: open | list | claim | settle | abandon
+  bench       Polis Bench: does learned routing beat the alternatives?
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
   verify      Check capability-card content-integrity hashes (--fix to stamp)
@@ -228,6 +229,27 @@ def cmd_migrate(argv):
     return 0
 
 
+def cmd_bench(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis bench")
+    ap.add_argument("--contracts", type=int, default=200)
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--citizens", type=int, default=4)
+    ap.add_argument("--tags", type=int, default=5)
+    ap.add_argument("--csv", default=None, help="Write per-contract learning curves to this CSV")
+    args = ap.parse_args(argv)
+
+    from . import bench
+    result = bench.run_benchmark(n_contracts=args.contracts, n_citizens=args.citizens,
+                                 n_tags=args.tags, seed=args.seed)
+    print(bench.format_report(result))
+    if args.csv:
+        path = bench.write_csv(result, args.csv)
+        print(f"\nwrote learning curves: {path}")
+    return 0
+
+
 def _resolve_root(value):
     root = Path(value).resolve() if value else _find_polis_root()
     if not root or not root.exists():
@@ -408,6 +430,8 @@ def main(argv=None):
         return cmd_status(rest)
     if cmd == "contract":
         return cmd_contract(rest)
+    if cmd == "bench":
+        return cmd_bench(rest)
     if cmd == "doctor":
         return cmd_doctor(rest)
     if cmd == "verify":
