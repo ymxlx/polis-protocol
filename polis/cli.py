@@ -19,7 +19,7 @@ commands:
   init        Scaffold or repair a _polis/ workspace and register an agent
   route       Recommend a citizen for an open contract (use --explain)
   reconcile   Rebuild routing_stats.yml from settled contracts
-  contract    Manage contracts: open | list | claim | settle | abandon
+  contract    Manage contracts: open | list | claim | settle | abandon | context
   bench       Polis Bench: does learned routing beat the alternatives?
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
@@ -323,7 +323,17 @@ def cmd_contract(argv):
         print(f"{sub}: {a.contract_id} ok")
         return 0
 
-    print("usage: polis contract <open|list|claim|settle|abandon> [...]")
+    if sub == "context":
+        ap = argparse.ArgumentParser(prog="polis contract context")
+        ap.add_argument("contract_id")
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        from . import context
+        print(context.format_packet(context.build_packet(root, a.contract_id)))
+        return 0
+
+    print("usage: polis contract <open|list|claim|settle|abandon|context> [...]")
     return 2
 
 
