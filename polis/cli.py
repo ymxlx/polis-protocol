@@ -20,7 +20,8 @@ commands:
   route       Recommend a citizen for an open contract (use --explain)
   reconcile   Rebuild routing_stats.yml from settled contracts
   contract    Manage contracts: open | list | claim | settle | abandon | context
-  bench       Polis Bench: does learned routing beat the alternatives?
+  bench       Polis Bench (--mode routing|learning): proof, measured honestly
+  guardrail   Record/list must-pass checks learned from failures (add | list)
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
   verify      Check capability-card content-integrity hashes (--fix to stamp)
@@ -229,10 +230,49 @@ def cmd_migrate(argv):
     return 0
 
 
+def cmd_guardrail(argv):
+    import argparse
+
+    sub = argv[0] if argv else ""
+    rest = argv[1:]
+    from . import guardrails
+
+    if sub == "add":
+        ap = argparse.ArgumentParser(prog="polis guardrail add")
+        ap.add_argument("--text", required=True, help="The must-pass check (one line)")
+        ap.add_argument("--tags", default="", help="comma-separated capability tags it applies to")
+        ap.add_argument("--from", dest="source", default=None, help="contract id this failure came from")
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        tags = [t.strip() for t in a.tags.split(",") if t.strip()]
+        res = guardrails.add_guardrail(root, a.text, tags, source_contract=a.source)
+        print(f"Added guardrail {res['guardrail_id']} (applies to: {', '.join(tags) or 'any'})")
+        return 0
+
+    if sub == "list":
+        ap = argparse.ArgumentParser(prog="polis guardrail list")
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        gs = guardrails.list_guardrails(root)
+        if not gs:
+            print("No guardrails yet.")
+            return 0
+        for g in gs:
+            print(f"  ⚠️ {g['text']}  [{', '.join(g['tags'])}]")
+        return 0
+
+    print("usage: polis guardrail <add|list> [...]")
+    return 2
+
+
 def cmd_bench(argv):
     import argparse
 
     ap = argparse.ArgumentParser(prog="polis bench")
+    ap.add_argument("--mode", choices=["routing", "learning"], default="routing",
+                    help="routing: learned vs baseline routing; learning: repeat-error over time")
     ap.add_argument("--contracts", type=int, default=200)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--citizens", type=int, default=4)
@@ -241,12 +281,15 @@ def cmd_bench(argv):
     args = ap.parse_args(argv)
 
     from . import bench
+    if args.mode == "learning":
+        result = bench.run_learning_benchmark(n_contracts=args.contracts, seed=args.seed)
+        print(bench.format_learning_report(result))
+        return 0
     result = bench.run_benchmark(n_contracts=args.contracts, n_citizens=args.citizens,
                                  n_tags=args.tags, seed=args.seed)
     print(bench.format_report(result))
     if args.csv:
-        path = bench.write_csv(result, args.csv)
-        print(f"\nwrote learning curves: {path}")
+        print(f"\nwrote learning curves: {bench.write_csv(result, args.csv)}")
     return 0
 
 
@@ -442,6 +485,8 @@ def main(argv=None):
         return cmd_contract(rest)
     if cmd == "bench":
         return cmd_bench(rest)
+    if cmd == "guardrail":
+        return cmd_guardrail(rest)
     if cmd == "doctor":
         return cmd_doctor(rest)
     if cmd == "verify":

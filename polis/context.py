@@ -75,6 +75,8 @@ def build_packet(polis_root, contract_id) -> dict:
     path, _state = find_contract(polis_root, contract_id)
     if not path:
         return {"ok": False, "reason": "contract not found"}
+    from . import guardrails as _guardrails
+
     fm, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
     required_tags = fm.get("required_tags") or []
     return {
@@ -83,6 +85,7 @@ def build_packet(polis_root, contract_id) -> dict:
         "title": fm.get("title", ""),
         "required_tags": required_tags,
         "acceptance_criteria": fm.get("acceptance_criteria") or [],
+        "guardrails": _guardrails.matching_guardrails(polis_root, required_tags),
         "lessons": matching_lessons(polis_root, required_tags),
     }
 
@@ -99,6 +102,11 @@ def format_packet(packet: dict) -> str:
     if packet["acceptance_criteria"]:
         lines += ["", "**Acceptance criteria:**"]
         lines += [f"- {c}" for c in packet["acceptance_criteria"]]
+    guardrails = packet.get("guardrails", [])
+    if guardrails:
+        lines += ["", f"## Must-pass guardrails ({len(guardrails)}, learned from past failures)"]
+        for g in guardrails:
+            lines.append(f"- ⚠️ {g['text']}  `[{', '.join(g['tags'])}]`")
     lessons = packet["lessons"]
     lines += ["", f"## What the team already learned ({len(lessons)} applicable lesson(s))"]
     if not lessons:

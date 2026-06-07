@@ -16,6 +16,7 @@ from polis import bench  # noqa: E402
 
 def main():
     ap = argparse.ArgumentParser(description="Polis Bench — learned routing vs baselines.")
+    ap.add_argument("--mode", choices=["routing", "learning"], default="routing")
     ap.add_argument("--contracts", type=int, default=200)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--citizens", type=int, default=4)
@@ -23,6 +24,10 @@ def main():
     ap.add_argument("--csv", default=None, help="Write per-contract learning curves to this CSV")
     args = ap.parse_args()
 
+    if args.mode == "learning":
+        print(bench.format_learning_report(bench.run_learning_benchmark(
+            n_contracts=args.contracts, seed=args.seed)))
+        return
     result = bench.run_benchmark(n_contracts=args.contracts, n_citizens=args.citizens,
                                  n_tags=args.tags, seed=args.seed)
     print(bench.format_report(result))

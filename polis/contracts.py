@@ -105,6 +105,19 @@ def open_contract(root, title, required_tags, opened_by, stakes="medium",
             n += 1
         cid = f"{cid}-{n}"
 
+    # Inherit must-pass guardrails learned from past failures on these tags.
+    criteria = list(acceptance or [])
+    inherited = 0
+    try:
+        from . import guardrails as _guardrails
+        for g in _guardrails.matching_guardrails(root, required_tags):
+            crit = f"[guardrail] {g['text']}"
+            if crit not in criteria:
+                criteria.append(crit)
+                inherited += 1
+    except Exception:
+        pass
+
     fm = {
         "contract_id": cid,
         "title": title,
@@ -116,7 +129,7 @@ def open_contract(root, title, required_tags, opened_by, stakes="medium",
         "required_tags": list(required_tags or []),
         "deadline": deadline,
         "cost_ceiling": cost_ceiling,
-        "acceptance_criteria": list(acceptance or []),
+        "acceptance_criteria": criteria,
         "routing": {"recommended_by_router": None, "recommendation_score": None,
                     "exploration": None, "override": None},
         "review": {"required": stakes == "high", "reviewer": None, "status": None},
@@ -126,7 +139,7 @@ def open_contract(root, title, required_tags, opened_by, stakes="medium",
     }
     body = (f"\n# {title}\n\n## Intent\n\n### Goal\n<what and why>\n\n"
             "### Acceptance criteria\n"
-            + ("".join(f"- {c}\n" for c in (acceptance or [])) or "- <criterion>\n")
+            + ("".join(f"- {c}\n" for c in criteria) or "- <criterion>\n")
             + "\n### Notes for the executor\n<context>\n")
     text = "---\n" + yaml.safe_dump(fm, sort_keys=False, allow_unicode=True) + "---\n" + body
     path = open_dir / f"{cid}.md"
