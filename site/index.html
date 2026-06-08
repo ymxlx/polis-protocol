@@ -27,6 +27,16 @@
   .grain{position:fixed; inset:0; z-index:56; pointer-events:none; opacity:.04; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
+  /* cursor-reactive motion */
+  .reticle{position:fixed; top:0; left:0; z-index:54; width:26px; height:26px; pointer-events:none; opacity:0; transition:opacity .45s var(--ease); will-change:transform}
+  .reticle.on{opacity:.4}
+  .reticle::before,.reticle::after{content:""; position:absolute; background:var(--gold)}
+  .reticle::before{left:13px; top:0; width:1px; height:100%}
+  .reticle::after{top:13px; left:0; height:1px; width:100%}
+  .par-a{transform:translate3d(calc(var(--mx,0)*11px),calc(var(--my,0)*9px),0); will-change:transform}
+  .bh{transform:translate3d(calc(var(--mx,0)*6px),0,0)}
+  .readout{transform:translate3d(calc(var(--mx,0)*5px),calc(var(--my,0)*4px),0); will-change:transform}
+
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 26px; position:relative; z-index:1}
   .mono{font-family:var(--mono)}
   h1,h2,h3{font-family:var(--sans); font-weight:800; letter-spacing:-.02em; line-height:1}
@@ -147,11 +157,13 @@
 
   .reveal{opacity:0; transform:translateY(20px); transition:opacity .7s var(--ease), transform .7s var(--ease)}
   .reveal.in{opacity:1; transform:none}
-  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.node{animation:none}body::after{display:none}}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.node{animation:none}body::after{display:none}
+    .par-a,.bh,.readout{transform:none!important}.reticle{display:none}}
 </style>
 </head>
 <body>
 <div class="grain"></div>
+<div class="reticle" aria-hidden="true"></div>
 
 <header class="hud">
   <div class="hud-in">
@@ -188,7 +200,7 @@
         </div>
         <div class="cmdrow"><span class="p">$</span><code>uvx polis-protocol init</code><button class="copy" data-copy="uvx polis-protocol init">Copy</button></div>
       </div>
-      <div class="panel reveal">
+      <div class="panel par-a">
         <div class="panel-h"><span><span class="dot">●</span>&nbsp; TELEMETRY / REPEAT-ERROR RATE</span><span>−88%</span></div>
         <div class="panel-b">
           <svg viewBox="0 0 600 290" width="100%" role="img" aria-label="Polis drives the repeat-error rate down as its lesson corpus grows; a memoryless setup stays flat at 65 percent">
@@ -320,6 +332,7 @@ polis route --explain'>Copy</button><span class="p">$</span> polis contract open
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
 <script>
   // scroll reveals
   const io = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.1,rootMargin:'0px 0px -6% 0px'});
@@ -338,6 +351,55 @@ polis route --explain'>Copy</button><span class="p">$</span> polis contract open
     const prev=b.textContent; b.textContent='Copied ✓'; b.classList.add('done');
     setTimeout(()=>{b.textContent=prev; b.classList.remove('done');},1500);
   });
+
+  // ── animated, vivid motion (hx.clinic-style): inertia scroll + cursor parallax ──
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    let lenis=null;
+    try{
+      if(window.Lenis){
+        lenis = new Lenis({ lerp:0.085, wheelMultiplier:1 });          // eased "glide" scroll
+        document.documentElement.style.scrollBehavior='auto';          // avoid double-smoothing
+        const raf=(t)=>{ lenis.raf(t); requestAnimationFrame(raf); };
+        requestAnimationFrame(raf);
+      }
+    }catch(e){}
+
+    // smooth in-page anchor jumps (account for the fixed HUD)
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click',(e)=>{
+        const id=a.getAttribute('href'); if(id.length<2) return;
+        const el=document.querySelector(id); if(!el) return;
+        e.preventDefault();
+        if(lenis){ lenis.scrollTo(el,{offset:-66}); } else { el.scrollIntoView({behavior:'smooth'}); }
+      });
+    });
+
+    // cursor parallax + targeting reticle (transform/opacity only, rAF-lerped)
+    const root=document.documentElement, ret=document.querySelector('.reticle');
+    let tmx=0,tmy=0,mx=0,my=0, tx=innerWidth/2,ty=innerHeight/2, rx=tx,ry=ty, shown=false;
+    addEventListener('pointermove',(e)=>{
+      if(e.pointerType==='touch') return;
+      tmx=(e.clientX/innerWidth-0.5)*2; tmy=(e.clientY/innerHeight-0.5)*2;
+      tx=e.clientX; ty=e.clientY;
+      if(!shown && ret){ shown=true; ret.classList.add('on'); }
+    },{passive:true});
+    document.addEventListener('mouseleave',()=>{ shown=false; ret&&ret.classList.remove('on'); });
+    (function loop(){
+      mx+=(tmx-mx)*0.08; my+=(tmy-my)*0.08; rx+=(tx-rx)*0.2; ry+=(ty-ry)*0.2;
+      root.style.setProperty('--mx',mx.toFixed(4)); root.style.setProperty('--my',my.toFixed(4));
+      if(ret) ret.style.transform=`translate(${(rx-13).toFixed(1)}px,${(ry-13).toFixed(1)}px)`;
+      requestAnimationFrame(loop);
+    })();
+
+    // magnetic buttons
+    document.querySelectorAll('.btn').forEach(b=>{
+      b.addEventListener('pointermove',(e)=>{
+        const r=b.getBoundingClientRect();
+        b.style.transform=`translate(${((e.clientX-r.left-r.width/2)*0.16).toFixed(1)}px,${((e.clientY-r.top-r.height/2)*0.28).toFixed(1)}px)`;
+      });
+      b.addEventListener('pointerleave',()=>{ b.style.transform=''; });
+    });
+  }
 </script>
 </body>
 </html>
