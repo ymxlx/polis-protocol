@@ -3,339 +3,335 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Polis Protocol — the local-first control plane for coding agents</title>
+<title>POLIS — control plane for coding agents</title>
 <meta name="description" content="Run Claude Code, Codex, Gemini and Cursor as one team — in your repo, in git, across every vendor. Every task has an owner, every handoff has evidence, and the team measurably stops repeating its own mistakes." />
-<meta property="og:title" content="Polis Protocol — the control plane for coding agents" />
+<meta property="og:title" content="POLIS — the control plane for coding agents" />
 <meta property="og:description" content="Every task has an owner, every handoff has evidence, and the team measurably stops repeating its own mistakes. Local-first, git-native, MIT." />
 <meta property="og:image" content="https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/assets/banner.png" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --bg:#08090c; --panel:#0d0f15; --ink:#ECEDF1; --muted:#8d909c; --faint:#565963;
-    --gold:#E8B24C; --cyan:#46cfdb; --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.05);
-    --ease:cubic-bezier(.32,.72,0,1); --maxw:1180px;
-    --display:'Clash Display',sans-serif; --body:'Satoshi',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    --bg:#0A0B0D; --panel:#0E1014; --ink:#E7E8E2; --muted:#8C8E86; --faint:#5d5f58;
+    --gold:#E8B24C; --cyan:#46cfdb; --alert:#F2552C; --hair:rgba(231,232,226,.13); --hair-2:rgba(231,232,226,.07);
+    --mono:'JetBrains Mono',ui-monospace,monospace; --sans:'Archivo',system-ui,sans-serif;
+    --ease:cubic-bezier(.2,.8,.2,1); --maxw:1280px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:var(--bg); color:var(--ink); font-family:var(--body); line-height:1.6;
+  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.55;
     -webkit-font-smoothing:antialiased; overflow-x:hidden; position:relative}
-  ::selection{background:rgba(232,178,76,.25)}
+  ::selection{background:var(--gold); color:#15100a}
+  a{color:inherit}
 
-  .mesh{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden}
-  .orb{position:absolute; border-radius:50%; filter:blur(100px)}
-  .orb.gold{width:46vw;height:46vw;left:-12vw;top:-16vw;background:radial-gradient(circle,rgba(232,178,76,.26),transparent 62%)}
-  .orb.cyan{width:40vw;height:40vw;right:-10vw;top:30vh;background:radial-gradient(circle,rgba(70,207,219,.16),transparent 62%)}
-  .orb.deep{width:52vw;height:52vw;left:20vw;bottom:-34vh;background:radial-gradient(circle,rgba(70,90,150,.10),transparent 64%)}
-  .grain{position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.04;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-  .wrap{position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding:0 28px}
+  /* analog texture: scanlines + grain, fixed, no blur */
+  body::after{content:""; position:fixed; inset:0; z-index:55; pointer-events:none; opacity:.45;
+    background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px)}
+  .grain{position:fixed; inset:0; z-index:56; pointer-events:none; opacity:.04; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-  h1,h2,h3,.display{font-family:var(--display); letter-spacing:-.02em; line-height:1.04; font-weight:600}
-  h1{font-size:clamp(2.7rem,6.2vw,5rem); letter-spacing:-.03em}
-  h2{font-size:clamp(2rem,4.2vw,3.1rem); letter-spacing:-.025em}
-  .lede{font-size:clamp(1.04rem,1.6vw,1.26rem); color:var(--muted); max-width:48ch; line-height:1.55}
-  .accent{color:var(--gold)}
-  .eyebrow{display:inline-flex; align-items:center; gap:.6em; border:1px solid var(--hair); border-radius:999px;
-    padding:.42em 1em; font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.2em; color:var(--muted); background:rgba(255,255,255,.02)}
-  .eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--cyan); animation:pulse 3.2s var(--ease) infinite}
-  @keyframes pulse{0%,100%{opacity:.45;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px; position:relative; z-index:1}
+  .mono{font-family:var(--mono)}
+  .label{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+  .tnum{font-variant-numeric:tabular-nums}
 
-  nav{position:fixed; top:0; left:0; right:0; z-index:40; display:flex; justify-content:center; padding:18px}
-  .navpill{display:flex; align-items:center; gap:24px; padding:8px 8px 8px 18px; background:rgba(13,15,21,.62);
-    backdrop-filter:blur(18px) saturate(160%); border:1px solid var(--hair); border-radius:999px;
-    box-shadow:inset 0 1px 1px rgba(255,255,255,.05)}
-  .navpill a{color:var(--muted); text-decoration:none; font-size:.86rem; transition:color .4s var(--ease)}
-  .navpill a:hover{color:var(--ink)}
-  .brand{display:flex;align-items:center;gap:9px;color:var(--ink)!important;font-family:var(--display);font-weight:600}
-  .navlinks{display:flex;gap:22px}
-  @media(max-width:760px){.navlinks{display:none}}
-  .node{animation:pulse 3.2s var(--ease) infinite; transform-origin:center}
+  h1,h2,h3{font-family:var(--sans); font-weight:800; letter-spacing:-.02em; line-height:.98}
+  h1{font-size:clamp(2.9rem,7vw,5.6rem); font-weight:900; letter-spacing:-.035em}
+  h2{font-size:clamp(2rem,4.4vw,3.2rem)}
+  .lede{font-size:clamp(1.02rem,1.5vw,1.2rem); color:var(--muted); max-width:52ch; line-height:1.55}
 
-  .btn{display:inline-flex; align-items:center; gap:.55em; font-family:var(--display); font-weight:500; font-size:.94rem;
-    padding:12px 13px 12px 22px; border-radius:999px; text-decoration:none; cursor:pointer; border:none;
-    transition:transform .5s var(--ease), background .5s var(--ease)}
-  .btn:active{transform:scale(.975)}
-  .btn-primary{background:var(--gold); color:#1b1305}
-  .btn-ghost{background:rgba(255,255,255,.04); color:var(--ink); border:1px solid var(--hair); padding:12px 22px}
-  .btn .ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.16);transition:transform .5s var(--ease)}
-  .btn-ghost .ic{background:rgba(255,255,255,.07)}
-  .btn:hover .ic{transform:translate(3px,-1px)}
-  .icn{width:17px;height:17px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  /* HUD top bar */
+  .hud{position:fixed; top:0; left:0; right:0; z-index:40; background:var(--bg); border-bottom:1px solid var(--hair)}
+  .hud-in{max-width:var(--maxw); margin:0 auto; padding:11px 24px; display:flex; align-items:center; justify-content:space-between; gap:18px}
+  .hud .sys{display:flex; align-items:center; gap:11px}
+  .hud .sys b{font-family:var(--sans); font-weight:800; letter-spacing:.02em; font-size:.95rem}
+  .hud .meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; color:var(--faint); text-transform:uppercase}
+  .hud nav{display:flex; gap:22px}
+  .hud nav a{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); text-decoration:none; transition:color .25s var(--ease)}
+  .hud nav a:hover{color:var(--gold)}
+  @media(max-width:720px){.hud nav,.hud .meta{display:none}}
+  .node{transform-origin:center; animation:blink 2.4s steps(1) infinite}
+  @keyframes blink{0%,72%{opacity:1}73%,100%{opacity:.35}}
 
-  .shell{background:rgba(255,255,255,.035); border:1px solid var(--hair-2); border-radius:30px; padding:7px}
-  .core{background:var(--panel); border-radius:24px; box-shadow:inset 0 1px 1px rgba(255,255,255,.05); padding:30px}
+  /* buttons — sharp, tactile, no radius/glow */
+  .btn{display:inline-flex; align-items:center; gap:.6em; font-family:var(--mono); font-size:.82rem; letter-spacing:.06em;
+    text-transform:uppercase; padding:13px 20px; text-decoration:none; border:1px solid transparent; cursor:pointer;
+    transition:transform .18s var(--ease), background .25s var(--ease), color .25s var(--ease)}
+  .btn:active{transform:translateY(1px)}
+  .btn-pri{background:var(--gold); color:#15100a; font-weight:700}
+  .btn-pri:hover{background:#f1c266}
+  .btn-gho{background:transparent; color:var(--ink); border-color:var(--hair)}
+  .btn-gho:hover{border-color:var(--gold); color:var(--gold)}
+  .ar{font-family:var(--mono)}
 
-  section{padding:clamp(80px,11vw,128px) 0; position:relative}
-  .hero{padding-top:178px; padding-bottom:84px}
-  .hero-grid{display:grid; grid-template-columns:1.08fr .92fr; gap:54px; align-items:center}
-  @media(max-width:900px){.hero-grid{grid-template-columns:1fr; gap:40px}}
-  .cta-row{display:flex; gap:13px; flex-wrap:wrap; margin-top:32px}
-  .hero h1{margin:22px 0 24px}
-  .install{margin-top:28px; font-family:var(--mono); font-size:.9rem; color:var(--muted); background:rgba(0,0,0,.34);
-    border:1px solid var(--hair); border-radius:13px; padding:13px 17px; display:flex; align-items:center; gap:11px; max-width:440px}
-  .install code{color:var(--ink)}
+  section{padding:clamp(72px,9vw,118px) 0; position:relative}
+  /* section index marker */
+  .smark{display:flex; align-items:baseline; gap:14px; border-bottom:1px solid var(--hair); padding-bottom:14px; margin-bottom:40px}
+  .smark .ix{font-family:var(--mono); font-size:12px; color:var(--gold); letter-spacing:.1em}
+  .smark .ti{font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+  .smark .rev{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.12em}
 
-  .chartcard .core{padding:24px 26px}
-  .chart-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; flex-wrap:wrap; gap:8px}
-  .chart-head .k{font-family:var(--mono); font-size:.74rem; color:var(--muted); letter-spacing:.01em}
-  .chart-head .big{font-family:var(--display); font-size:1.05rem; color:var(--cyan)}
-  .legend{display:flex; gap:18px; margin-top:12px; font-size:.78rem; color:var(--muted); flex-wrap:wrap; font-family:var(--mono)}
+  /* hairline grid (gap:1px reveals dividers) */
+  .grid{display:grid; gap:1px; background:var(--hair); border:1px solid var(--hair)}
+  .grid > .cell{background:var(--bg); padding:clamp(22px,2.6vw,34px)}
+
+  /* hero */
+  .hero{padding-top:150px}
+  .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:42px; align-items:center}
+  @media(max-width:920px){.hero-grid{grid-template-columns:1fr; gap:36px}}
+  .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold)}
+  .hero h1{margin:20px 0 22px}
+  .hero h1 .dim{color:var(--muted)}
+  .cta-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:30px}
+  .cmdline{margin-top:26px; border:1px solid var(--hair); background:var(--panel); display:flex; align-items:center; gap:12px;
+    padding:13px 16px; font-family:var(--mono); font-size:.86rem; max-width:430px}
+  .cmdline .p{color:var(--gold)} .cmdline .c{color:var(--ink)} .cmdline .x{color:var(--faint); margin-left:auto; font-size:.74rem; letter-spacing:.1em}
+
+  /* telemetry panel */
+  .panel{border:1px solid var(--hair); background:var(--panel)}
+  .panel-h{display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--hair); padding:10px 14px;
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+  .panel-h .dot{color:var(--cyan)}
+  .panel-b{padding:18px 16px}
+  .legend{display:flex; gap:18px; margin-top:10px; font-family:var(--mono); font-size:10.5px; color:var(--muted); letter-spacing:.06em; flex-wrap:wrap}
   .legend span{display:inline-flex; align-items:center; gap:7px}
-  .sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+  .sw{width:14px;height:2px;display:inline-block}
 
-  /* asymmetric bento */
-  .bento{display:grid; grid-template-columns:repeat(6,1fr); gap:18px; margin-top:46px}
-  @media(max-width:820px){.bento{grid-template-columns:1fr}}
-  .b-big{grid-column:span 4; grid-row:span 2}
-  .b-sm{grid-column:span 2}
-  @media(max-width:820px){.b-big,.b-sm{grid-column:span 1; grid-row:auto}}
-  .b-big .core{height:100%}
-  .ic-tile{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;margin-bottom:18px;
-    background:rgba(255,255,255,.04); border:1px solid var(--hair); color:var(--gold)}
-  .ic-tile .icn{width:21px;height:21px}
-  .card-k{font-family:var(--display); font-weight:600; font-size:1.2rem; margin-bottom:9px; letter-spacing:-.01em}
-  .b-big .card-k{font-size:1.7rem; margin-top:4px}
-  .card-p{color:var(--muted); font-size:.96rem}
+  /* problem — asymmetric compartments */
+  .prob{display:grid; grid-template-columns:1.6fr 1fr; gap:1px; background:var(--hair); border:1px solid var(--hair)}
+  @media(max-width:820px){.prob{grid-template-columns:1fr}}
+  .prob > div{background:var(--bg); padding:clamp(24px,3vw,38px)}
+  .prob .lead{grid-row:span 2}
+  @media(max-width:820px){.prob .lead{grid-row:auto}}
+  .ix-big{font-family:var(--mono); font-size:13px; color:var(--gold); letter-spacing:.12em; margin-bottom:18px}
+  .ck{font-family:var(--sans); font-weight:800; font-size:1.18rem; margin-bottom:9px; letter-spacing:-.01em}
+  .prob .lead .ck{font-size:1.7rem}
+  .cp{color:var(--muted); font-size:.96rem; max-width:46ch}
 
   /* proof */
-  .proof-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:46px}
-  @media(max-width:820px){.proof-grid{grid-template-columns:1fr}}
-  .stat{font-family:var(--display); font-size:3.2rem; font-weight:700; letter-spacing:-.03em; line-height:1}
-  .stat.cy{color:var(--cyan)} .stat.go{color:var(--gold)}
+  .proof{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--hair); border:1px solid var(--hair)}
+  @media(max-width:820px){.proof{grid-template-columns:1fr}}
+  .proof > div{background:var(--bg); padding:clamp(26px,3vw,40px)}
+  .readout{font-family:var(--sans); font-weight:900; font-size:clamp(3.4rem,7vw,5rem); line-height:.9; letter-spacing:-.04em; font-variant-numeric:tabular-nums}
+  .readout.cy{color:var(--cyan)} .readout.go{color:var(--gold)}
+  .runit{font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; margin-top:8px}
+  .term{border:1px solid var(--hair); background:#08090b; padding:13px 15px; font-family:var(--mono); font-size:.8rem;
+    line-height:1.7; margin-top:18px; overflow-x:auto}
+  .term .p{color:var(--gold)} .term .cm{color:var(--faint)} .term .ok{color:var(--cyan)} .term .no{color:var(--alert)}
 
-  .terminal{background:#07080b; border:1px solid var(--hair); border-radius:13px; padding:15px 17px; font-family:var(--mono);
-    font-size:.83rem; color:var(--ink); margin-top:16px; overflow-x:auto; line-height:1.7}
-  .terminal .pr{color:var(--gold)} .terminal .cm{color:var(--faint)} .terminal .ok{color:var(--cyan)} .terminal .no{color:#e0795f}
+  /* sequence */
+  .seq{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--hair); border:1px solid var(--hair)}
+  @media(max-width:820px){.seq{grid-template-columns:1fr}}
+  .seq > div{background:var(--bg); padding:clamp(22px,2.6vw,32px)}
+  .seq .sx{font-family:var(--mono); font-size:11px; color:var(--gold); letter-spacing:.14em; text-transform:uppercase}
 
-  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:46px}
-  @media(max-width:820px){.steps{grid-template-columns:1fr}}
-  .step-n{font-family:var(--mono); font-size:.72rem; color:var(--cyan); letter-spacing:.16em; text-transform:uppercase}
+  /* spec table (honesty) */
+  .spec{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--hair); border:1px solid var(--hair)}
+  @media(max-width:760px){.spec{grid-template-columns:1fr}}
+  .spec > div{background:var(--bg); padding:clamp(26px,3vw,40px)}
+  .spec h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:500; margin-bottom:20px}
+  .spec .yes h3{color:var(--cyan)} .spec .no h3{color:var(--faint)}
+  .spec li{list-style:none; display:flex; gap:12px; padding:9px 0; color:var(--muted); border-top:1px solid var(--hair-2); font-size:.95rem}
+  .spec li:first-of-type{border-top:none}
+  .spec li .m{font-family:var(--mono); color:var(--gold); flex:none}
+  .spec .no li .m{color:var(--faint)}
 
-  .honest{display:grid; grid-template-columns:1fr 1fr; gap:34px; margin-top:34px}
-  @media(max-width:820px){.honest{grid-template-columns:1fr; gap:24px}}
-  .honest ul{list-style:none}
-  .honest li{padding:8px 0 8px 28px; position:relative; color:var(--muted)}
-  .honest li svg{position:absolute; left:0; top:11px; width:15px; height:15px}
+  .install-wrap{max-width:560px; margin:36px auto 0}
+  footer{border-top:1px solid var(--hair); padding:30px 0; margin-top:30px}
+  .foot{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:18px;
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+  .foot a{color:var(--muted); text-decoration:none; transition:color .25s var(--ease)}
+  .foot a:hover{color:var(--gold)}
+  .foot .reg{color:var(--faint)}
 
-  .sec-head{max-width:640px}
-  .sec-head h2{margin:18px 0 16px}
-
-  footer{padding:78px 0 56px; border-top:1px solid var(--hair-2); margin-top:40px}
-  .foot-grid{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px}
-  .badges{display:flex; gap:10px; flex-wrap:wrap}
-  .badge{font-family:var(--mono); font-size:.74rem; color:var(--muted); border:1px solid var(--hair); border-radius:999px;
-    padding:6px 13px; text-decoration:none; transition:color .4s var(--ease),border-color .4s var(--ease)}
-  .badge:hover{color:var(--ink); border-color:rgba(255,255,255,.2)}
-
-  .reveal{opacity:0; transform:translateY(32px); filter:blur(6px); transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s var(--ease)}
-  .reveal.in{opacity:1; transform:none; filter:none}
-  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;filter:none;transition:none}.node,.eyebrow .dot{animation:none}}
+  .reveal{opacity:0; transform:translateY(20px); transition:opacity .7s var(--ease), transform .7s var(--ease)}
+  .reveal.in{opacity:1; transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.node{animation:none}body::after{display:none}}
 </style>
 </head>
 <body>
-<div class="mesh"><div class="orb gold"></div><div class="orb cyan"></div><div class="orb deep"></div></div>
 <div class="grain"></div>
 
-<nav>
-  <div class="navpill">
-    <a class="brand" href="#top" aria-label="Polis home">
-      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#E8B24C" stroke-width="1" stroke-linejoin="round"><polygon points="12,3.5 19.4,7.75 19.4,16.25 12,20.5 4.6,16.25 4.6,7.75"/><path d="M12 12 12 3.5M12 12 19.4 7.75M12 12 19.4 16.25M12 12 12 20.5M12 12 4.6 16.25M12 12 4.6 7.75"/></g><g fill="#E8B24C"><circle cx="12" cy="3.5" r="1.4"/><circle cx="19.4" cy="7.75" r="1.4"/><circle cx="19.4" cy="16.25" r="1.4"/><circle cx="12" cy="20.5" r="1.4"/><circle cx="4.6" cy="16.25" r="1.4"/><circle cx="4.6" cy="7.75" r="1.4"/></g><circle class="node" cx="12" cy="12" r="2.2" fill="#46cfdb"/></svg>
-      Polis
-    </a>
-    <div class="navlinks">
-      <a href="#proof">Proof</a><a href="#how">How it works</a><a href="#honest">When to use it</a>
+<header class="hud">
+  <div class="hud-in">
+    <div class="sys">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#E8B24C" stroke-width="1" stroke-linejoin="round"><polygon points="12,3.5 19.4,7.75 19.4,16.25 12,20.5 4.6,16.25 4.6,7.75"/><path d="M12 12 12 3.5M12 12 19.4 7.75M12 12 19.4 16.25M12 12 12 20.5M12 12 4.6 16.25M12 12 4.6 7.75"/></g><g fill="#E8B24C"><circle cx="12" cy="3.5" r="1.4"/><circle cx="19.4" cy="7.75" r="1.4"/><circle cx="19.4" cy="16.25" r="1.4"/><circle cx="12" cy="20.5" r="1.4"/><circle cx="4.6" cy="16.25" r="1.4"/><circle cx="4.6" cy="7.75" r="1.4"/></g><circle class="node" cx="12" cy="12" r="2.2" fill="#46cfdb"/></svg>
+      <b>POLIS</b><span class="meta">// CONTROL&nbsp;PLANE&nbsp;//&nbsp;REV&nbsp;2.0&nbsp;//&nbsp;MIT</span>
     </div>
-    <a class="btn btn-primary" href="#install">Install<span class="ic"><svg class="icn" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14"/></svg></span></a>
+    <nav>
+      <a href="#problem">01_Problem</a><a href="#proof">02_Proof</a><a href="#seq">03_Sequence</a><a href="#install">Install →</a>
+    </nav>
   </div>
-</nav>
+</header>
 
-<main id="top">
+<main>
 <section class="hero wrap">
   <div class="hero-grid">
     <div>
-      <span class="eyebrow"><span class="dot"></span>Open source · MIT · MCP-native</span>
-      <h1>The local-first <span class="accent">control plane</span> for coding agents.</h1>
-      <p class="lede">Run Claude Code, Codex, Gemini and Cursor as one team — in your repo, in git, across every vendor. Every task has an owner, every handoff has evidence, and the team measurably stops repeating its own mistakes.</p>
+      <div class="eyebrow">[ Local-first · git-native · MCP ]</div>
+      <h1>Coordinate your coding agents <span class="dim">like one team.</span></h1>
+      <p class="lede">Run Claude Code, Codex, Gemini and Cursor against one repo. Every task has an owner, every handoff has evidence, and the team measurably stops repeating its own mistakes — in git, across every vendor.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#install">Get started<span class="ic"><svg class="icn" viewBox="0 0 24 24"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg></span></a>
-        <a class="btn btn-ghost" href="https://github.com/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">View on GitHub<span class="ic"><svg class="icn" viewBox="0 0 24 24"><path d="M7 17 17 7m0 0H8m9 0v9"/></svg></span></a>
+        <a class="btn btn-pri" href="#install">Get started <span class="ar">→</span></a>
+        <a class="btn btn-gho" href="https://github.com/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">GitHub <span class="ar">↗</span></a>
       </div>
-      <div class="install">
-        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,3.5 19.4,7.75 19.4,16.25 12,20.5 4.6,16.25 4.6,7.75" fill="none" stroke="#E8B24C" stroke-width="1.4"/><circle cx="12" cy="12" r="2" fill="#46cfdb"/></svg>
-        <code>uvx polis-protocol init</code><span style="color:var(--faint)">· no server, no database</span>
-      </div>
+      <div class="cmdline"><span class="p">$</span><span class="c">uvx polis-protocol init</span><span class="x">NO SERVER · NO DB</span></div>
     </div>
 
-    <div class="shell chartcard reveal">
-      <div class="core">
-        <div class="chart-head"><span class="k">Repeat-error rate over a stream of tasks</span><span class="big">−88%</span></div>
-        <svg viewBox="0 0 600 300" width="100%" role="img" aria-label="Polis cuts repeat errors as its lesson corpus grows; a memoryless setup stays flat at 65%">
-          <defs><linearGradient id="cy" x1="0" x2="1"><stop offset="0" stop-color="#46cfdb"/><stop offset="1" stop-color="#7be3ec"/></linearGradient></defs>
-          <g stroke="rgba(255,255,255,.06)" stroke-width="1"><line x1="40" y1="40" x2="40" y2="270"/><line x1="40" y1="270" x2="585" y2="270"/><line x1="40" y1="155" x2="585" y2="155" stroke-dasharray="2 7"/></g>
-          <text x="6" y="46" fill="#565963" font-size="11" font-family="JetBrains Mono">70%</text>
-          <text x="12" y="274" fill="#565963" font-size="11" font-family="JetBrains Mono">0%</text>
-          <path d="M40,270 C70,150 110,110 160,104 C260,96 420,99 585,98" fill="none" stroke="#6b6e7a" stroke-width="2.4" stroke-linecap="round"/>
-          <path d="M40,270 C58,150 78,120 96,135 C150,175 240,205 340,235 C430,258 510,266 585,270" fill="none" stroke="url(#cy)" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="585" cy="270" r="3.5" fill="#46cfdb"/><circle cx="585" cy="98" r="3.5" fill="#6b6e7a"/>
-          <text x="466" y="90" fill="#9a9ca6" font-size="11.5" font-family="JetBrains Mono">memoryless · 65%</text>
-          <text x="492" y="262" fill="#46cfdb" font-size="11.5" font-family="JetBrains Mono">Polis · 8%</text>
+    <div class="panel reveal">
+      <div class="panel-h"><span><span class="dot">●</span>&nbsp; TELEMETRY / REPEAT-ERROR RATE</span><span>−88%</span></div>
+      <div class="panel-b">
+        <svg viewBox="0 0 600 290" width="100%" role="img" aria-label="Polis drives the repeat-error rate down as its lesson corpus grows; a memoryless setup stays flat at 65 percent">
+          <g stroke="rgba(231,232,226,.10)" stroke-width="1">
+            <line x1="42" y1="34" x2="42" y2="262"/><line x1="42" y1="262" x2="585" y2="262"/>
+            <line x1="42" y1="148" x2="585" y2="148" stroke-dasharray="2 8"/>
+            <line x1="200" y1="34" x2="200" y2="262" stroke-dasharray="2 8"/><line x1="380" y1="34" x2="380" y2="262" stroke-dasharray="2 8"/>
+          </g>
+          <text x="8" y="40" fill="#5d5f58" font-size="11" font-family="JetBrains Mono">70%</text>
+          <text x="14" y="266" fill="#5d5f58" font-size="11" font-family="JetBrains Mono">0%</text>
+          <path d="M42,262 C72,148 112,108 162,102 C262,94 422,97 585,96" fill="none" stroke="#6f716a" stroke-width="2"/>
+          <path d="M42,262 C60,148 80,116 98,131 C152,172 242,202 342,230 C432,254 512,260 585,262" fill="none" stroke="#46cfdb" stroke-width="2.4"/>
+          <rect x="582" y="93" width="6" height="6" fill="#6f716a"/><rect x="582" y="259" width="6" height="6" fill="#46cfdb"/>
+          <text x="468" y="88" fill="#9a9c92" font-size="11" font-family="JetBrains Mono">MEMORYLESS 65%</text>
+          <text x="498" y="254" fill="#46cfdb" font-size="11" font-family="JetBrains Mono">POLIS 8%</text>
         </svg>
         <div class="legend">
-          <span><i class="sw" style="background:#6b6e7a"></i>Single agent / unmanaged swarm</span>
-          <span><i class="sw" style="background:#46cfdb"></i>Polis · accumulates &amp; re-injects</span>
+          <span><i class="sw" style="background:#6f716a"></i>SINGLE AGENT / UNMANAGED SWARM</span>
+          <span><i class="sw" style="background:#46cfdb"></i>POLIS · ACCUMULATES + RE-INJECTS</span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- PROBLEM — asymmetric bento -->
+<!-- PROBLEM -->
 <section class="wrap" id="problem">
-  <div class="sec-head reveal">
-    <span class="eyebrow"><span class="dot"></span>The problem</span>
-    <h2>More agents, more chaos.</h2>
-    <p class="lede">A second coding agent doesn't double your output — it doubles your coordination overhead. The failure modes are predictable.</p>
-  </div>
-  <div class="bento">
-    <div class="shell b-big reveal"><div class="core">
-      <div class="ic-tile"><svg class="icn" viewBox="0 0 24 24"><path d="M3 12h6M15 12h6"/><path d="M11 7l-3 5 3 5M13 7l3 5-3 5"/></svg></div>
-      <div class="card-k">They collide on the same file</div>
-      <p class="card-p">Two agents open <span style="color:var(--ink)">src/auth/login.py</span> at the same moment. One overwrites the other; work is silently lost, or you spend the afternoon untangling a merge. Nothing in a plain repo stops it — coordination is left to luck.</p>
-      <p class="card-p" style="margin-top:14px">This is the failure that scales <em>worst</em> as you add agents: collisions grow with every parallel worker.</p>
-    </div></div>
-    <div class="shell b-sm reveal"><div class="core">
-      <div class="ic-tile"><svg class="icn" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke-dasharray="2.6 4"/><path d="M12 8v4l3 2"/></svg></div>
-      <div class="card-k">They forget</div>
-      <p class="card-p">Every session starts at zero. The same gotcha, re-learned every time.</p>
-    </div></div>
-    <div class="shell b-sm reveal"><div class="core">
-      <div class="ic-tile"><svg class="icn" viewBox="0 0 24 24"><rect x="3" y="8.5" width="6.5" height="7" rx="2"/><rect x="14.5" y="8.5" width="6.5" height="7" rx="2"/><path d="M9.5 12h1.5M13 12h1.5"/></svg></div>
-      <div class="card-k">They're siloed</div>
-      <p class="card-p">Switch vendor, lose the context. No shared memory across tools.</p>
-    </div></div>
+  <div class="smark reveal"><span class="ix">[ 01 ]</span><span class="ti">The problem</span><span class="rev">// FAILURE MODES</span></div>
+  <div class="prob reveal">
+    <div class="lead">
+      <div class="ix-big">01.A — COLLISION</div>
+      <div class="ck">Two agents, one file, at once.</div>
+      <p class="cp">Claude and Codex both open <samp class="mono" style="color:var(--ink)">src/auth/login.py</samp>. One silently overwrites the other; work is lost, or the afternoon goes to untangling a merge. A plain repo leaves coordination to luck — and collisions grow with every parallel worker you add. This is the failure that scales worst.</p>
+    </div>
+    <div>
+      <div class="ix-big">01.B — AMNESIA</div>
+      <div class="ck">They forget.</div>
+      <p class="cp">Every session starts at zero. The same gotcha, re-learned every time.</p>
+    </div>
+    <div>
+      <div class="ix-big">01.C — SILOS</div>
+      <div class="ck">They're isolated.</div>
+      <p class="cp">Switch vendor, lose the context. No shared memory across tools.</p>
+    </div>
   </div>
 </section>
 
 <!-- PROOF -->
 <section class="wrap" id="proof">
-  <div class="sec-head reveal">
-    <span class="eyebrow"><span class="dot"></span>Proof, measured honestly</span>
-    <h2>A team that actually gets better.</h2>
-    <p class="lede">Not a claim — a reproducible benchmark in the repo. Two results we can stand behind.</p>
-  </div>
-  <div class="proof-grid">
-    <div class="shell reveal"><div class="core" style="padding:34px">
-      <div class="stat cy">−88%</div>
-      <div class="card-k" style="margin-top:14px">Repeat errors, gone</div>
-      <p class="card-p">Polis records each failure as a lesson or guardrail and auto-injects it into matching future tasks, so the repeat-error rate falls from <span style="color:var(--ink)">65% to 8%</span> versus a memoryless setup. Each failure class recurs at most once. A lone agent can't draw that curve — it never accumulates.</p>
-      <div class="terminal"><span class="cm"># reproduce it yourself</span><br><span class="pr">$</span> polis bench --mode learning</div>
-    </div></div>
-    <div class="shell reveal"><div class="core" style="padding:34px">
-      <div class="stat go">Zero</div>
-      <div class="card-k" style="margin-top:14px">Collisions, guaranteed</div>
-      <p class="card-p">Before touching code, an agent reserves the files. An overlapping reservation is <span style="color:var(--ink)">deterministically rejected</span> — no model judgement, no race. The guarantee a single agent or an unmanaged swarm structurally cannot give.</p>
-      <div class="terminal"><span class="pr">$</span> polis reserve src/auth --as claude<br><span class="pr">$</span> polis reserve src/auth/login.py --as codex<br><span class="no">REJECTED — held by claude</span></div>
-    </div></div>
-  </div>
-</section>
-
-<!-- HOW -->
-<section class="wrap" id="how">
-  <div class="sec-head reveal">
-    <span class="eyebrow"><span class="dot"></span>How it works</span>
-    <h2>One <span style="font-family:var(--mono);color:var(--gold);font-size:.8em">_polis/</span> folder. In your repo.</h2>
-    <p class="lede">Plain markdown plus two small Python scripts. No server, no database, no lock-in — it lives in git, and every vendor's agent reads the same source of truth.</p>
-  </div>
-  <div class="steps">
-    <div class="shell reveal"><div class="core">
-      <div class="step-n">Step 01</div><div class="card-k" style="margin-top:10px">Found a polis</div>
-      <p class="card-p">Scaffold the workspace and register your agents as citizens.</p>
-      <div class="terminal"><span class="pr">$</span> uvx polis-protocol init</div>
-    </div></div>
-    <div class="shell reveal"><div class="core">
-      <div class="step-n">Step 02</div><div class="card-k" style="margin-top:10px">Open &amp; route work</div>
-      <p class="card-p">Contracts get an owner, acceptance criteria, and a transparent routing reason.</p>
-      <div class="terminal"><span class="pr">$</span> polis contract open --title …<br><span class="pr">$</span> polis route --explain</div>
-    </div></div>
-    <div class="shell reveal"><div class="core">
-      <div class="step-n">Step 03</div><div class="card-k" style="margin-top:10px">Settle &amp; compound</div>
-      <p class="card-p">Settled work files a lesson; the next matching task starts pre-loaded with it.</p>
-      <div class="terminal"><span class="pr">$</span> polis contract settle … <span class="ok">ok</span></div>
-    </div></div>
-  </div>
-</section>
-
-<!-- HONESTY -->
-<section class="wrap" id="honest">
-  <div class="shell reveal"><div class="core" style="padding:clamp(28px,4vw,46px)">
-    <span class="eyebrow"><span class="dot"></span>Intellectual honesty</span>
-    <h2 style="margin:18px 0 8px">When to use it — and when not to.</h2>
-    <p class="lede">We benchmarked our own claims. Here's the straight version.</p>
-    <div class="honest">
-      <div>
-        <div class="step-n">Reach for Polis when</div>
-        <ul style="margin-top:14px">
-          <li><svg class="icn" viewBox="0 0 24 24" style="stroke:var(--cyan)"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg>2+ agents touch one real repo and collisions are a risk</li>
-          <li><svg class="icn" viewBox="0 0 24 24" style="stroke:var(--cyan)"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg>You switch between vendors and lose context each time</li>
-          <li><svg class="icn" viewBox="0 0 24 24" style="stroke:var(--cyan)"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg>You want the team to stop repeating mistakes — provably</li>
-          <li><svg class="icn" viewBox="0 0 24 24" style="stroke:var(--cyan)"><path d="M5 12h14m0 0l-6-6m6 6l-6 6"/></svg>You need an auditable record of who did what, and why</li>
-        </ul>
-      </div>
-      <div>
-        <div class="step-n" style="color:var(--faint)">Skip it when</div>
-        <ul style="margin-top:14px">
-          <li><svg class="icn" viewBox="0 0 24 24" style="stroke:var(--faint)"><path d="M6 12h12"/></svg>One well-prompted agent already does the job</li>
-          <li><svg class="icn" viewBox="0 0 24 24" style="stroke:var(--faint)"><path d="M6 12h12"/></svg>Your capability cards are accurate and tasks never drift</li>
-          <li><svg class="icn" viewBox="0 0 24 24" style="stroke:var(--faint)"><path d="M6 12h12"/></svg>You want a hosted runtime — Polis coordinates, it doesn't execute</li>
-        </ul>
-      </div>
+  <div class="smark reveal"><span class="ix">[ 02 ]</span><span class="ti">Proof, measured honestly</span><span class="rev">// REPRODUCIBLE</span></div>
+  <div class="proof reveal">
+    <div>
+      <output class="readout cy">−88%</output>
+      <div class="runit">Repeat errors · 65% → 8%</div>
+      <p class="cp" style="margin-top:18px">Polis records each failure as a lesson or guardrail and re-injects it into matching future tasks. The repeat-error rate falls 88% below a memoryless setup — each failure class recurs at most once. A lone agent can't draw that curve; it never accumulates.</p>
+      <div class="term"><span class="cm"># reproduce it yourself</span><br><span class="p">$</span> polis bench --mode learning</div>
     </div>
-  </div></div>
+    <div>
+      <output class="readout go">0</output>
+      <div class="runit">Collisions · deterministic</div>
+      <p class="cp" style="margin-top:18px">Before touching code, an agent reserves the files. An overlapping reservation is rejected outright — no model judgement, no race. The guarantee a single agent or an unmanaged swarm structurally cannot give.</p>
+      <div class="term"><span class="p">$</span> polis reserve src/auth --as claude<br><span class="p">$</span> polis reserve src/auth/login.py --as codex<br><span class="no">REJECTED // HELD BY claude</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SEQUENCE -->
+<section class="wrap" id="seq">
+  <div class="smark reveal"><span class="ix">[ 03 ]</span><span class="ti">Operating sequence</span><span class="rev">// ONE _polis/ FOLDER</span></div>
+  <div class="seq reveal">
+    <div>
+      <div class="sx">SEQ.01 — FOUND</div>
+      <div class="ck" style="margin:12px 0 8px">Scaffold the polis</div>
+      <p class="cp">Create the workspace; register your agents as citizens.</p>
+      <div class="term"><span class="p">$</span> uvx polis-protocol init</div>
+    </div>
+    <div>
+      <div class="sx">SEQ.02 — ROUTE</div>
+      <div class="ck" style="margin:12px 0 8px">Open &amp; assign work</div>
+      <p class="cp">Contracts get an owner, acceptance criteria, and a transparent routing reason.</p>
+      <div class="term"><span class="p">$</span> polis contract open …<br><span class="p">$</span> polis route --explain</div>
+    </div>
+    <div>
+      <div class="sx">SEQ.03 — COMPOUND</div>
+      <div class="ck" style="margin:12px 0 8px">Settle &amp; learn</div>
+      <p class="cp">Settled work files a lesson; the next matching task starts pre-loaded with it.</p>
+      <div class="term"><span class="p">$</span> polis contract settle … <span class="ok">OK</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- HONESTY SPEC -->
+<section class="wrap" id="honest">
+  <div class="smark reveal"><span class="ix">[ 04 ]</span><span class="ti">Operating envelope</span><span class="rev">// WE BENCHMARKED OUR OWN CLAIMS</span></div>
+  <div class="spec reveal">
+    <div class="yes">
+      <h3>[ Reach for Polis when ]</h3>
+      <ul>
+        <li><span class="m">+</span><span>2+ agents touch one real repo and collisions are a risk</span></li>
+        <li><span class="m">+</span><span>You switch between vendors and lose context each time</span></li>
+        <li><span class="m">+</span><span>You want the team to stop repeating mistakes — provably</span></li>
+        <li><span class="m">+</span><span>You need an auditable record of who did what, and why</span></li>
+      </ul>
+    </div>
+    <div class="no">
+      <h3>[ Skip it when ]</h3>
+      <ul>
+        <li><span class="m">−</span><span>One well-prompted agent already does the job</span></li>
+        <li><span class="m">−</span><span>Your capability cards are accurate and tasks never drift</span></li>
+        <li><span class="m">−</span><span>You want a hosted runtime — Polis coordinates, it doesn't execute</span></li>
+      </ul>
+    </div>
+  </div>
 </section>
 
 <!-- INSTALL -->
 <section class="wrap" id="install">
-  <div class="sec-head reveal" style="text-align:center; margin:0 auto">
-    <span class="eyebrow"><span class="dot"></span>Install</span>
-    <h2 style="margin:18px 0 14px">Start in under five minutes.</h2>
+  <div class="smark reveal"><span class="ix">[ 05 ]</span><span class="ti">Install</span><span class="rev">// &lt; 5 MINUTES</span></div>
+  <div class="install-wrap reveal">
+    <div class="panel">
+      <div class="panel-h"><span>polis@local</span><span>BASH</span></div>
+      <div class="panel-b" style="padding:18px">
+        <div class="term" style="margin:0; border:none; background:transparent; padding:0; font-size:.86rem">
+          <span class="cm"># one command, nothing to install</span><br><span class="p">$</span> uvx polis-protocol init<br><br>
+          <span class="cm"># or as a persistent CLI</span><br><span class="p">$</span> pipx install polis-protocol<br><span class="p">$</span> polis status <span class="ok">OK</span>
+        </div>
+      </div>
+    </div>
+    <div class="cta-row" style="margin-top:18px">
+      <a class="btn btn-pri" href="https://github.com/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">Star on GitHub <span class="ar">↗</span></a>
+      <a class="btn btn-gho" href="https://open-vsx.org/extension/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">Antigravity / VS Code <span class="ar">↗</span></a>
+    </div>
   </div>
-  <div class="shell reveal" style="max-width:560px;margin:30px auto 0"><div class="core" style="padding:30px">
-    <div class="terminal" style="margin:0; font-size:.92rem">
-      <span class="cm"># one command, nothing to install</span><br><span class="pr">$</span> uvx polis-protocol init<br><br>
-      <span class="cm"># or as a persistent CLI</span><br><span class="pr">$</span> pipx install polis-protocol<br><span class="pr">$</span> polis status <span class="ok">ok</span>
-    </div>
-    <div class="cta-row" style="justify-content:center; margin-top:24px">
-      <a class="btn btn-primary" href="https://github.com/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">Star on GitHub<span class="ic"><svg class="icn" viewBox="0 0 24 24"><path d="M7 17 17 7m0 0H8m9 0v9"/></svg></span></a>
-      <a class="btn btn-ghost" href="https://open-vsx.org/extension/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">Antigravity / VS Code<span class="ic"><svg class="icn" viewBox="0 0 24 24"><path d="M7 17 17 7m0 0H8m9 0v9"/></svg></span></a>
-    </div>
-  </div></div>
 </section>
 </main>
 
-<footer class="wrap">
-  <div class="foot-grid">
-    <div style="display:flex;align-items:center;gap:10px">
-      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="#E8B24C"><circle cx="12" cy="3.5" r="1.4"/><circle cx="19.4" cy="7.75" r="1.4"/><circle cx="19.4" cy="16.25" r="1.4"/><circle cx="12" cy="20.5" r="1.4"/><circle cx="4.6" cy="16.25" r="1.4"/><circle cx="4.6" cy="7.75" r="1.4"/></g><circle cx="12" cy="12" r="2.2" fill="#46cfdb"/></svg>
-      <span style="font-family:var(--display);font-weight:600">Polis Protocol</span>
-      <span style="color:var(--faint);font-size:.85rem">· MIT licensed</span>
-    </div>
-    <div class="badges">
-      <a class="badge" href="https://github.com/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">GitHub</a>
-      <a class="badge" href="https://open-vsx.org/extension/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">Open VSX</a>
-      <a class="badge" href="https://marketplace.visualstudio.com/items?itemName=yehudalevy-collab.polis-protocol" target="_blank" rel="noopener">VS Code Marketplace</a>
-    </div>
+<footer>
+  <div class="wrap foot">
+    <span>POLIS&nbsp;PROTOCOL <span class="reg">© 2026 · MIT</span></span>
+    <span>
+      <a href="https://github.com/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">GITHUB</a> &nbsp;/&nbsp;
+      <a href="https://open-vsx.org/extension/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">OPEN&nbsp;VSX</a> &nbsp;/&nbsp;
+      <a href="https://marketplace.visualstudio.com/items?itemName=yehudalevy-collab.polis-protocol" target="_blank" rel="noopener">MARKETPLACE</a>
+    </span>
+    <span class="reg">UNIT / CTRL-PLANE · REV 2.0.0a0</span>
   </div>
 </footer>
 
 <script>
-  const io = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});
-  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3*70)+'ms';io.observe(el);});
+  const io = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.1,rootMargin:'0px 0px -6% 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 </script>
 </body>
 </html>
