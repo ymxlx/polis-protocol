@@ -65,10 +65,18 @@ def current_quarter() -> str:
     return f"{now.year}-Q{q}"
 
 
-# Templates ship as files in ../templates/ relative to this script. We read at
-# runtime instead of embedding as Python strings, so the canonical constitution
-# can be edited in plain markdown.
-TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+# Data files (templates + the SKILL.md the init copies into a project) ship as
+# package data under polis/_data/ so they survive a pip/uvx install. In a repo
+# checkout that location exists too; we fall back to the repo root only if the
+# bundled copy is somehow missing.
+def data_path(rel: str) -> Path:
+    bundled = Path(__file__).resolve().parent / "_data" / rel
+    if bundled.exists():
+        return bundled
+    return Path(__file__).resolve().parent.parent / rel
+
+
+TEMPLATES_DIR = data_path("templates")
 
 
 def load_template(name: str) -> str:
@@ -345,7 +353,7 @@ def planned_actions(
     }
     for display_name in bridge_pointer_targets(project_root, bridge_tools):
         actions[display_name] = "planned"
-    skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
+    skill_md = data_path("SKILL.md")
     if codex_skill:
         if skill_md.exists():
             actions[".agents/skills/polis-protocol/SKILL.md"] = "planned"
@@ -525,7 +533,7 @@ def main():
         actions[display_name] = result
 
     # Codex-format skill copy.
-    skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
+    skill_md = data_path("SKILL.md")
     if args.codex_skill:
         if skill_md.exists():
             actions[".agents/skills/polis-protocol/SKILL.md"] = write_codex_skill_copy(

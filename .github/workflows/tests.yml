@@ -54,6 +54,9 @@ jobs:
       - name: Run guardrails + learning-benchmark test
         run: python3 scripts/test_guardrails.py
 
+      - name: Run packaging-data sync test
+        run: python3 scripts/test_packaging.py
+
       - name: Smoke-test init_polis.py
         run: |
           mkdir -p /tmp/smoke

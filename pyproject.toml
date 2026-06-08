@@ -32,3 +32,6 @@ polis = "polis.cli:main"
 
 [tool.setuptools]
 packages = ["polis"]
+
+[tool.setuptools.package-data]
+polis = ["_data/SKILL.md", "_data/templates/*.md"]
