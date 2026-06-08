@@ -1,0 +1,2 @@
+recursive-include polis/_data *
+include README.md LICENSE
