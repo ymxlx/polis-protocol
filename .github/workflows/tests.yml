@@ -57,6 +57,9 @@ jobs:
       - name: Run packaging-data sync test
         run: python3 scripts/test_packaging.py
 
+      - name: Run serve + report (Replay) test
+        run: python3 scripts/test_serve_report.py
+
       - name: Smoke-test init_polis.py
         run: |
           mkdir -p /tmp/smoke
