@@ -127,7 +127,7 @@ standing_instructions: |
   - <persistent preference 1>
   - <persistent preference 2>
 
-signature: "<signature string, computed by sign_card.py>"
+content_hash: "sha256:<computed by `polis verify --fix`>"
 ```
 
 ## Template: `_polis/citizens/<agent-id>/status.md`

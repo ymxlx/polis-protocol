@@ -30,6 +30,33 @@ jobs:
       - name: Run lessons-routing regression test
         run: python3 scripts/test_lessons_routing.py
 
+      - name: Run doctor + config test
+        run: python3 scripts/test_doctor.py
+
+      - name: Run content-integrity test
+        run: python3 scripts/test_integrity.py
+
+      - name: Run migrate (plan/apply/rollback) test
+        run: python3 scripts/test_migrate.py
+
+      - name: Run file-reservations test
+        run: python3 scripts/test_reservations.py
+
+      - name: Run contract-lifecycle test
+        run: python3 scripts/test_contracts.py
+
+      - name: Run Polis Bench test
+        run: python3 scripts/test_benchmark.py
+
+      - name: Run context-packet test
+        run: python3 scripts/test_context.py
+
+      - name: Run guardrails + learning-benchmark test
+        run: python3 scripts/test_guardrails.py
+
+      - name: Run packaging-data sync test
+        run: python3 scripts/test_packaging.py
+
       - name: Smoke-test init_polis.py
         run: |
           mkdir -p /tmp/smoke

@@ -43,5 +43,4 @@ standing_instructions: |
   - Prefer accessible vocabulary; this audience is families, not academics.
   - Always cite sources inline with footnote markers.
   - When uncertain about Spanish movement vocabulary, defer to gemini-translator-pesaj.
-
-signature: "claude-research-pesaj:2026-02-14:sha256:6f3a91c2b7e4d8a1f5e9c3a7b2d8f4a6"
+content_hash: "sha256:c2f68571bce07eeed510378af6c25c6f6405e27f32129117233e704feb48efaf"

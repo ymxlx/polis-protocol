@@ -8,7 +8,7 @@ If you find one of the following, please report it privately first:
 
 - **Path traversal** — e.g. an agent-id or contract-id that escapes `_polis/` and writes elsewhere.
 - **YAML deserialization issues** — e.g. a capability card or contract that abuses `yaml.safe_load` (we only ever use the safe loader, but report regressions).
-- **Signature spoofing** — the card signature is an integrity check, not a security boundary, but exploits that defeat the intended integrity property are still useful to know.
+- **Content-hash spoofing** — the card `content_hash` is tamper-evidence, not a security boundary, but exploits that defeat the intended integrity property are still useful to know.
 - **Anything that lets an untrusted file at one path cause writes at an unexpected path** when running the bundled scripts.
 
 Send a private report to **yehuda.moshe24@gmail.com** with:

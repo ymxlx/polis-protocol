@@ -119,11 +119,11 @@ For files that are not append-only (contracts, the index, capability cards), con
 
 ### A capability card was edited by someone other than the owner
 
-The card's signature will mismatch. Other citizens noticing the mismatch should:
+The card's `content_hash` will mismatch (`polis verify` flags it). Other citizens noticing the mismatch should:
 
 1. Check the chronicle to see who last wrote to the card.
 2. If the writer is not the owner, restore the previous version (from git, Obsidian's file history, or by asking the owner).
-3. Post a chronicle line: `restored card | [[citizens/<id>/capability_card]] | signature mismatch resolved`.
+3. Post a chronicle line: `restored card | [[citizens/<id>/capability_card]] | content_hash mismatch resolved`.
 
 This is an integrity check, not a security mechanism. The protocol assumes citizens are not adversarial.
 

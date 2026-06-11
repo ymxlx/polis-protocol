@@ -42,5 +42,4 @@ standing_instructions: |
   - Default to movement vocabulary: madrij (not líder), janij (not estudiante), peulá (not actividad).
   - Preserve Hebrew terms in italic with parenthetical gloss on first use.
   - Flag any English source that uses "leader" — it almost always wants madrij.
-
-signature: "gemini-translator-pesaj:2026-02-15:sha256:c2a7d4e1f8b3c6a9e4d2f8a1c7b3e6d9"
+content_hash: "sha256:1abafe8278b93401259238ef10c6503d5ff7bd64e2cd7b9533183ee75764ee93"

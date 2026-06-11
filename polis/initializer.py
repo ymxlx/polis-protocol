@@ -3,8 +3,9 @@
 init_polis.py — scaffold a new Polis Protocol project.
 
 Creates the canonical _polis/ folder structure inside a project root, with all
-template files populated. Idempotent: if files exist, it warns and skips rather
-than overwriting (use --force to overwrite).
+template files populated. Idempotent and non-destructive: if files exist, it
+warns and skips rather than overwriting. Use --repair to restore missing managed
+files, and `polis migrate` for schema upgrades.
 
 Usage:
     python init_polis.py --project-root <path> --agent-id <name>
@@ -20,7 +21,8 @@ Optional arguments:
     --codex-skill / --no-codex-skill       # write .agents/skills/polis-protocol/SKILL.md
     --antigravity-skill / --no-antigravity-skill  # write .agents/skills/polis-protocol/SKILL.md (Antigravity reads this)
     --dry-run                              # preview files without writing
-    --force                                 # overwrite existing files
+    --repair                               # restore missing managed files (never overwrites)
+    --force                                # deprecated, ignored (init never overwrites)
 
 The bridge pointers (CLAUDE.md, AGENTS.md, GEMINI.md, AIDER.md) are short files
 at the project root that point each tool at the canonical _polis/CONSTITUTION.md,
@@ -63,10 +65,18 @@ def current_quarter() -> str:
     return f"{now.year}-Q{q}"
 
 
-# Templates ship as files in ../templates/ relative to this script. We read at
-# runtime instead of embedding as Python strings, so the canonical constitution
-# can be edited in plain markdown.
-TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+# Data files (templates + the SKILL.md the init copies into a project) ship as
+# package data under polis/_data/ so they survive a pip/uvx install. In a repo
+# checkout that location exists too; we fall back to the repo root only if the
+# bundled copy is somehow missing.
+def data_path(rel: str) -> Path:
+    bundled = Path(__file__).resolve().parent / "_data" / rel
+    if bundled.exists():
+        return bundled
+    return Path(__file__).resolve().parent.parent / rel
+
+
+TEMPLATES_DIR = data_path("templates")
 
 
 def load_template(name: str) -> str:
@@ -343,7 +353,7 @@ def planned_actions(
     }
     for display_name in bridge_pointer_targets(project_root, bridge_tools):
         actions[display_name] = "planned"
-    skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
+    skill_md = data_path("SKILL.md")
     if codex_skill:
         if skill_md.exists():
             actions[".agents/skills/polis-protocol/SKILL.md"] = "planned"
@@ -404,8 +414,20 @@ def main():
                         help="Mirror SKILL.md into .agents/skills/ for Google Antigravity.")
     parser.add_argument("--no-antigravity-skill", dest="antigravity_skill", action="store_false")
     parser.add_argument("--dry-run", action="store_true", help="Preview scaffolded files without writing anything.")
-    parser.add_argument("--force", action="store_true", help="Overwrite existing files.")
+    parser.add_argument("--repair", action="store_true",
+                        help="Restore missing managed files without overwriting existing ones.")
+    parser.add_argument("--force", action="store_true",
+                        help="Deprecated and ignored: init never overwrites existing files.")
     args = parser.parse_args()
+
+    # Destructive overwrite has been removed. init only ever fills gaps; for schema
+    # upgrades use `polis migrate`. --force is kept as a no-op for compatibility.
+    if args.force:
+        print("  warning: --force is deprecated and ignored — existing files are never "
+              "overwritten. Use `polis migrate` to upgrade, or --repair to restore missing files.")
+    args.force = False
+    if args.repair:
+        print("  repair mode: restoring any missing managed files; existing files are left untouched.")
 
     validate_agent_id(args.agent_id)
 
@@ -511,7 +533,7 @@ def main():
         actions[display_name] = result
 
     # Codex-format skill copy.
-    skill_md = Path(__file__).resolve().parent.parent / "SKILL.md"
+    skill_md = data_path("SKILL.md")
     if args.codex_skill:
         if skill_md.exists():
             actions[".agents/skills/polis-protocol/SKILL.md"] = write_codex_skill_copy(
