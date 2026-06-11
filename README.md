@@ -4,9 +4,10 @@
 
 # Polis Protocol
 
-> A self-optimizing city of AI agents. A team of Claude, Codex, Gemini, and any other vendor can share one project, route work to whoever is best at it, and measurably get better over time — using nothing but a folder of markdown files.
+> The local-first control plane for coding agents. Run Claude, Codex, Gemini, and Cursor against one repo — every task gets an owner, every handoff carries evidence, and the team measurably stops repeating its own mistakes. Plain markdown, in git, across every vendor.
 
 [![tests](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml/badge.svg)](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml)
+[![PyPI](https://img.shields.io/pypi/v/polis-protocol?label=pypi&color=2b7)](https://pypi.org/project/polis-protocol/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![Skill](https://img.shields.io/badge/format-Claude%20Skill-blueviolet)](SKILL.md)
@@ -36,11 +37,12 @@ cd polis-protocol && bash scripts/demo.sh
 
 ```
 Score breakdown (sorted by total):
-  gemini-translator-pesaj   total=0.588  hist=0.25  self=1.00  cost=1.00  avail=1.00
-  claude-research-pesaj     total=0.453  hist=0.15  self=0.60  cost=1.00  avail=1.00
-  codex-frontend-pesaj      total=0.290  hist=0.00  self=0.20  cost=1.00  avail=1.00
+  gemini-translator-pesaj   total=0.688  hist=0.25  self=1.00  cost=1.00  avail=1.00  lessons=+0.10
+                              ↳ lessons applied: 2026-04-18-madrij-not-lider
+  claude-research-pesaj     total=0.453  hist=0.15  self=0.60  cost=1.00  avail=1.00  lessons=+0.00
+  codex-frontend-pesaj      total=0.290  hist=0.00  self=0.20  cost=1.00  avail=1.00  lessons=+0.00
 
-Recommendation: gemini-translator-pesaj   ← won on history, not self-rating
+Recommendation: gemini-translator-pesaj   ← won on history + an applied lesson, not self-rating
 ```
 
 > If that loop is interesting to you, a ⭐ genuinely helps other multi-agent builders find this.
@@ -87,59 +89,39 @@ It is opinionated on purpose. The names are sticky, the file format is rigid, th
 
 ## Quick start
 
-### One-command install
+### Install
 
 From the root of any project:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash
+# zero-install, one command
+uvx polis-protocol init
+
+# or install the CLI
+pipx install polis-protocol      # isolated
+pip install polis-protocol       # into the current env
 ```
 
-That creates `_polis/`, bridge files for Claude/Codex/Gemini/Aider, and a starter
-capability card. You can pass a better citizen identity when you want one:
+`init` scaffolds `_polis/`, writes bridge files for Claude/Codex/Gemini, and
+registers you as a citizen. Pass an identity when you want one:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash -s -- \
+uvx polis-protocol init \
   --agent-id claude-research-yourproject \
-  --vendor anthropic \
-  --model claude-opus-4-7 \
-  --tool "claude code"
+  --vendor anthropic --model claude-opus-4-7 --tool "claude code"
 ```
 
-### Manual install
-
-```bash
-git clone https://github.com/yehudalevy-collab/polis-protocol.git
-```
-
-Then found a polis:
-
-```bash
-python polis-protocol/scripts/init_polis.py \
-  --project-root /path/to/your/project \
-  --agent-id claude-research-yourproject \
-  --vendor anthropic \
-  --model claude-opus-4-7 \
-  --tool "claude code" \
-  --project-name "Your Project Name"
-```
-
-Preview the scaffold without writing files:
-
-```bash
-python polis-protocol/scripts/init_polis.py \
-  --project-root /path/to/your/project \
-  --agent-id claude-research-yourproject \
-  --dry-run
-```
+Preview the scaffold without writing files using `--dry-run`. Re-running is
+non-destructive; `polis init --repair` restores any missing managed files.
+(Hacking on the protocol itself? `git clone` + `python scripts/init_polis.py`
+still works.)
 
 You now have:
 
 ```
 your-project/
 ├── CLAUDE.md / AGENTS.md / GEMINI.md / AIDER.md ← cross-tool entry pointers
-├── .agents/skills/polis-protocol/SKILL.md ← Codex-format mirror
-├── .antigravity/skills/polis-protocol/SKILL.md ← Google Antigravity skill
+├── .agents/skills/polis-protocol/SKILL.md ← skill mirror (Codex and Antigravity both read this)
 └── _polis/
     ├── CONSTITUTION.md                    ← canonical protocol
     ├── README.md
@@ -154,7 +136,12 @@ your-project/
 
 ### Open a contract
 
-Drop a file in `_polis/contracts/open/`:
+```bash
+polis contract open --title "Literature review" \
+  --tags long-context-reading,source-checking --by claude-research-yourproject
+```
+
+Or drop a file in `_polis/contracts/open/` by hand — it's just markdown:
 
 ```yaml
 ---
@@ -173,31 +160,58 @@ cost_ceiling: medium
 ### Route it
 
 ```bash
-python polis-protocol/scripts/route_contract.py \
-  --polis-root _polis \
-  --contract _polis/contracts/open/literature-review.md \
-  --explain
+polis route --polis-root _polis \
+  --contract _polis/contracts/open/literature-review.md --explain
 ```
 
 Output:
 
 ```
 Score breakdown:
-  claude-research-yourproject  total=0.430  hist=0.00  self=0.90  cost=1.00  avail=1.00
-  codex-frontend-yourproject   total=0.350  hist=0.00  self=0.50  cost=1.00  avail=1.00
+  claude-research-yourproject  total=0.430  hist=0.00  self=0.90  cost=1.00  avail=1.00  lessons=+0.00
+  codex-frontend-yourproject   total=0.350  hist=0.00  self=0.50  cost=1.00  avail=1.00  lessons=+0.00
 
 Recommendation: claude-research-yourproject
 ```
 
 ### Settle and learn
 
-When the contract closes, the owner files a lesson under `_polis/lessons/<tag>/`. Then:
-
 ```bash
-python polis-protocol/scripts/route_contract.py --polis-root _polis --reconcile
+polis contract settle literature-review --quality 5 --minutes 90
+polis reconcile --polis-root _polis
 ```
 
-The bandit's `routing_stats.yml` updates. Next time a similar contract opens, the routing decision is sharper.
+The bandit's `routing_stats.yml` updates, and any lesson the owner files under
+`_polis/lessons/<tag>/` can carry a bounded `routing_effect` that the router
+reads — and names in `--explain` — on the next similar contract. Failures can
+become `polis guardrail add …` entries that future contracts on those tags
+inherit as must-pass acceptance criteria.
+
+### Don't collide
+
+```bash
+polis reserve src/auth --as claude-research-yourproject --note "refactoring login"
+# another agent trying to grab src/auth/login.py is now rejected, with the holder named
+polis release src/auth --as claude-research-yourproject
+```
+
+---
+
+## Proof, measured honestly
+
+`polis bench` ships in the box — we benchmarked our own claims instead of asserting them:
+
+- **Repeat errors: −88%.** With lessons and guardrails auto-injected into matching future
+  tasks, the repeat-error rate falls from ~65% (a memoryless agent or unmanaged swarm) to ~8%
+  — each failure class recurs at most once, then becomes a standing check. Reproduce it:
+  `polis bench --mode learning`.
+- **Collisions: zero, deterministically.** `polis reserve` rejects overlapping file claims
+  outright, naming the holder. No model judgement, no race.
+- **And the part most projects won't tell you:** learned routing beats no-skill baselines
+  (random, round-robin) and recovers ~35–55% of an oracle's quality gain from outcomes alone —
+  but *accurate* static self-ratings stay competitive on quality, and the bench report says so
+  explicitly (`polis bench`). Polis's edge is learning *without having to trust the cards*,
+  a transparent reason for every pick, and the coordination layer the baselines lack.
 
 ---
 
@@ -272,9 +286,11 @@ Both produce the same recommendation. Citizens can always override.
 
 | Path | What it is |
 |---|---|
+| [`polis/`](polis/) | The installable package behind the `polis` CLI — routing, contracts, reservations, guardrails, context packets, bench, doctor, verify, migrate |
 | [`SKILL.md`](SKILL.md) | The Claude Code skill: when to activate, full workflow |
-| [`scripts/init_polis.py`](scripts/init_polis.py) | Bootstrap a new polis (idempotent, content-hashed cards, bridge pointers) |
-| [`scripts/route_contract.py`](scripts/route_contract.py) | The bandit router and the `--reconcile` job that rebuilds stats from settled contracts |
+| [`scripts/init_polis.py`](scripts/init_polis.py) | Bootstrap a new polis (idempotent, content-hashed cards, bridge pointers); thin shim over `polis/initializer.py` |
+| [`scripts/route_contract.py`](scripts/route_contract.py) | The bandit router and the `--reconcile` job; thin shim over `polis/routing.py` |
+| [`scripts/benchmark.py`](scripts/benchmark.py) | Polis Bench — routing vs baselines, and the repeat-error learning curve |
 | [`templates/POLIS_CONSTITUTION.md`](templates/POLIS_CONSTITUTION.md) | The canonical constitution written into every new polis |
 | [`templates/bridge_pointer.md`](templates/bridge_pointer.md) | The short `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` that points each tool at the constitution |
 | [`references/protocol-spec.md`](references/protocol-spec.md) | Full schema for every file (cards, contracts, lessons, amendments, reviews, status, inbox) |
@@ -293,8 +309,7 @@ The protocol is vendor-agnostic. The same polis can be shared by Claude, Codex, 
 - `AGENTS.md` — entry point for Codex, Jules, goose, opencode, Zed, Warp, VS Code, and Devin
 - `GEMINI.md` — entry point for Gemini CLI and Google Antigravity
 - `AIDER.md` — entry point for Aider
-- `.agents/skills/polis-protocol/SKILL.md` — a Codex-format skill mirror
-- `.antigravity/skills/polis-protocol/SKILL.md` — auto-loaded by Google Antigravity ([integration guide](docs/antigravity.md))
+- `.agents/skills/polis-protocol/SKILL.md` — skill mirror read by both Codex and Google Antigravity ([integration guide](docs/antigravity.md))
 
 They all point at one place: `_polis/CONSTITUTION.md`. Updating the protocol means editing that one file.
 
@@ -318,7 +333,12 @@ The migration path from `agent-vault` is documented in [`references/troubleshoot
 
 ## Status
 
-Reference implementation. The protocol is intentionally minimal — every file is markdown, every script is plain Python stdlib (`route_contract.py` adds one optional `PyYAML` dependency for parsing capability cards). Forks, issues, and amendments welcome.
+**v2.0.0a0 (alpha) — [on PyPI](https://pypi.org/project/polis-protocol/).** The protocol stays
+intentionally minimal — every file is markdown in your repo, the only dependency is PyYAML, and
+there is no server or database. The `polis` CLI covers
+`init · route · reconcile · status · contract · reserve/release · guardrail · bench · doctor · verify · migrate`,
+backed by 11 test suites in CI across Python 3.10–3.13. Schema v2 (`_polis/polis.yml`) migrates
+reversibly via `polis migrate --plan|--apply|--rollback`. Forks, issues, and amendments welcome.
 
 ---
 
