@@ -21,6 +21,8 @@ commands:
   reconcile   Rebuild routing_stats.yml from settled contracts
   contract    Manage contracts: open | list | claim | settle | abandon | context
   bench       Polis Bench (--mode routing|learning): proof, measured honestly
+  serve       Local read-only dashboard (http://127.0.0.1:7341)
+  report      Write a shareable Polis Replay (--format md|html, --redact)
   guardrail   Record/list must-pass checks learned from failures (add | list)
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
@@ -227,6 +229,35 @@ def cmd_migrate(argv):
     print("Planned migration (dry run — re-run with --apply):")
     for action in actions:
         print(f"  {action['action']}: {action['detail']}")
+    return 0
+
+
+def cmd_serve(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis serve")
+    ap.add_argument("--port", type=int, default=7341)
+    ap.add_argument("--polis-root", default=None)
+    a = ap.parse_args(argv)
+    root = _resolve_root(a.polis_root)
+    from . import serve as _serve
+    _serve.serve(root, port=a.port)
+    return 0
+
+
+def cmd_report(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis report")
+    ap.add_argument("--format", choices=["md", "html"], default="md")
+    ap.add_argument("--redact", action="store_true", help="Anonymize citizens and drop free text for sharing")
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--polis-root", default=None)
+    a = ap.parse_args(argv)
+    root = _resolve_root(a.polis_root)
+    from . import report as _report
+    path = _report.write_report(root, fmt=a.format, redacted=a.redact, out_path=a.out)
+    print(f"wrote {path}")
     return 0
 
 
@@ -487,6 +518,10 @@ def main(argv=None):
         return cmd_bench(rest)
     if cmd == "guardrail":
         return cmd_guardrail(rest)
+    if cmd == "serve":
+        return cmd_serve(rest)
+    if cmd == "report":
+        return cmd_report(rest)
     if cmd == "doctor":
         return cmd_doctor(rest)
     if cmd == "verify":
