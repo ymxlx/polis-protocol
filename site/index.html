@@ -27,6 +27,33 @@
   .grain{position:fixed; inset:0; z-index:56; pointer-events:none; opacity:.04; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
+  /* scroll-progress spine (left instrumentation line) */
+  .spine{position:fixed; left:20px; top:0; bottom:0; width:2px; z-index:38; pointer-events:none}
+  .spine .track{position:absolute; inset:0; background:var(--hair-2)}
+  .spine .fill{position:absolute; left:0; top:0; width:100%; height:100%;
+    background:linear-gradient(180deg,var(--gold) 0%,var(--cyan) 100%);
+    transform-origin:top; transform:scaleY(var(--prog,0)); will-change:transform}
+  .spine .tip{position:absolute; left:50%; top:0; width:7px; height:7px; background:var(--gold);
+    transform:translate(-50%,-50%) translateY(calc(var(--prog,0)*100vh)); will-change:transform;
+    box-shadow:0 0 0 3px rgba(232,178,76,.15)}
+  @media(max-width:1120px){.spine{display:none}}
+
+  /* draw-on SVG paths */
+  .ln,.lp{stroke-dasharray:1; stroke-dashoffset:1}
+  .draw .ln{transition:stroke-dashoffset 1.5s var(--ease) .15s; stroke-dashoffset:0}
+  .draw .ln2{transition-delay:.7s}
+  .draw .lp{transition:stroke-dashoffset 2.2s var(--ease) .1s; stroke-dashoffset:0}
+  .loop-wrap{margin-bottom:clamp(30px,4vw,52px)}
+  .loop text{font-family:var(--mono); letter-spacing:.08em}
+  .loop .pulse{opacity:0} .loop-wrap.draw .pulse{opacity:1; transition:opacity .4s var(--ease) 2s}
+
+  /* perpetual data-flow on band header rules */
+  .bandhead{position:relative; overflow:hidden}
+  .bandhead::after{content:""; position:absolute; bottom:-1px; left:-24px; height:1px; width:calc(100% + 24px);
+    background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 24px); opacity:.22;
+    animation:flow 8s linear infinite}
+  @keyframes flow{to{transform:translateX(24px)}}
+
   /* cursor-reactive motion */
   .reticle{position:fixed; top:0; left:0; z-index:54; width:26px; height:26px; pointer-events:none; opacity:0; transition:opacity .45s var(--ease); will-change:transform}
   .reticle.on{opacity:.4}
@@ -158,12 +185,15 @@
   .reveal{opacity:0; transform:translateY(20px); transition:opacity .7s var(--ease), transform .7s var(--ease)}
   .reveal.in{opacity:1; transform:none}
   @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.node{animation:none}body::after{display:none}
-    .par-a,.bh,.readout{transform:none!important}.reticle{display:none}}
+    .par-a,.bh,.readout{transform:none!important}.reticle{display:none}
+    .ln,.ln2,.lp{stroke-dashoffset:0!important;transition:none!important}
+    .bandhead::after{animation:none}.loop .pulse{display:none}.spine .tip{box-shadow:none}}
 </style>
 </head>
 <body>
 <div class="grain"></div>
 <div class="reticle" aria-hidden="true"></div>
+<div class="spine" aria-hidden="true"><span class="track"></span><span class="fill"></span><span class="tip"></span></div>
 
 <header class="hud">
   <div class="hud-in">
@@ -200,14 +230,14 @@
         </div>
         <div class="cmdrow"><span class="p">$</span><code>uvx polis-protocol init</code><button class="copy" data-copy="uvx polis-protocol init">Copy</button></div>
       </div>
-      <div class="panel par-a">
+      <div class="panel par-a" data-draw>
         <div class="panel-h"><span><span class="dot">●</span>&nbsp; TELEMETRY / REPEAT-ERROR RATE</span><span>−88%</span></div>
         <div class="panel-b">
           <svg viewBox="0 0 600 290" width="100%" role="img" aria-label="Polis drives the repeat-error rate down as its lesson corpus grows; a memoryless setup stays flat at 65 percent">
             <g stroke="rgba(231,232,226,.10)" stroke-width="1"><line x1="42" y1="34" x2="42" y2="262"/><line x1="42" y1="262" x2="585" y2="262"/><line x1="42" y1="148" x2="585" y2="148" stroke-dasharray="2 8"/><line x1="200" y1="34" x2="200" y2="262" stroke-dasharray="2 8"/><line x1="380" y1="34" x2="380" y2="262" stroke-dasharray="2 8"/></g>
             <text x="8" y="40" fill="#5d5f58" font-size="11" font-family="JetBrains Mono">70%</text><text x="14" y="266" fill="#5d5f58" font-size="11" font-family="JetBrains Mono">0%</text>
-            <path d="M42,262 C72,148 112,108 162,102 C262,94 422,97 585,96" fill="none" stroke="#6f716a" stroke-width="2"/>
-            <path d="M42,262 C60,148 80,116 98,131 C152,172 242,202 342,230 C432,254 512,260 585,262" fill="none" stroke="#46cfdb" stroke-width="2.4"/>
+            <path class="ln" pathLength="1" d="M42,262 C72,148 112,108 162,102 C262,94 422,97 585,96" fill="none" stroke="#6f716a" stroke-width="2"/>
+            <path class="ln ln2" pathLength="1" d="M42,262 C60,148 80,116 98,131 C152,172 242,202 342,230 C432,254 512,260 585,262" fill="none" stroke="#46cfdb" stroke-width="2.4"/>
             <rect x="582" y="93" width="6" height="6" fill="#6f716a"/><rect x="582" y="259" width="6" height="6" fill="#46cfdb"/>
             <text x="468" y="88" fill="#9a9c92" font-size="11" font-family="JetBrains Mono">MEMORYLESS 65%</text><text x="498" y="254" fill="#46cfdb" font-size="11" font-family="JetBrains Mono">POLIS 8%</text>
           </svg>
@@ -238,6 +268,27 @@
 <section class="band" id="proof">
   <div class="bandhead"><div class="wrap bh"><span class="ix">[ 02 ]</span><span class="ti">Proof, measured honestly</span><span class="rev">// REPRODUCIBLE</span></div></div>
   <div class="wrap bandbody">
+    <div class="loop-wrap" data-draw>
+      <svg class="loop" viewBox="0 0 1180 178" width="100%" role="img" aria-label="The loop: a contract is opened, claimed with reserved files, settled with evidence, distilled into a lesson and guardrail, and re-injected into matching future tasks">
+        <path class="lp" pathLength="1" d="M60,118 H1120 C1120,30 60,30 60,118" fill="none" stroke="#E8B24C" stroke-width="1.4" opacity=".85"/>
+        <g fill="#E8B24C">
+          <rect x="56" y="114" width="8" height="8"/><rect x="321" y="114" width="8" height="8"/>
+          <rect x="586" y="114" width="8" height="8"/><rect x="851" y="114" width="8" height="8"/>
+          <rect x="1116" y="114" width="8" height="8"/>
+        </g>
+        <g fill="#8C8E86" font-size="11" text-anchor="middle">
+          <text x="60" y="145">CONTRACT</text><text x="60" y="160">OPENED</text>
+          <text x="325" y="145">CLAIMED +</text><text x="325" y="160">FILES RESERVED</text>
+          <text x="590" y="145">SETTLED</text><text x="590" y="160">WITH EVIDENCE</text>
+          <text x="855" y="145">LESSON +</text><text x="855" y="160">GUARDRAIL</text>
+          <text x="1120" y="145">NEXT TASK</text><text x="1120" y="160">PRE-LOADED</text>
+        </g>
+        <text x="590" y="22" fill="#46cfdb" font-size="11" text-anchor="middle">RE-INJECTED INTO MATCHING FUTURE TASKS</text>
+        <circle class="pulse" r="4" fill="#46cfdb">
+          <animateMotion dur="7s" repeatCount="indefinite" path="M60,118 H1120 C1120,30 60,30 60,118"/>
+        </circle>
+      </svg>
+    </div>
     <div class="proof reveal">
       <div>
         <output class="readout cy">−88%</output>
@@ -342,6 +393,18 @@ polis route --explain'>Copy</button><span class="p">$</span> polis contract open
   const rail=[...document.querySelectorAll('.rail a')];
   const secIO=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){rail.forEach(a=>a.classList.toggle('on',a.dataset.s===e.target.id));}})},{rootMargin:'-45% 0px -45% 0px'});
   ['problem','proof','seq','honest','install'].forEach(id=>{const el=document.getElementById(id); if(el) secIO.observe(el);});
+
+  // draw-on SVG paths (chart lines, loop pipeline)
+  const dIO=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('draw');dIO.unobserve(e.target);}})},{threshold:.35});
+  document.querySelectorAll('[data-draw]').forEach(el=>dIO.observe(el));
+
+  // scroll-progress spine
+  const setProg=()=>{
+    const h=document.documentElement.scrollHeight-innerHeight;
+    const y=window.scrollY||document.documentElement.scrollTop;
+    document.documentElement.style.setProperty('--prog',(h>0?Math.min(1,Math.max(0,y/h)):0).toFixed(4));
+  };
+  addEventListener('scroll',setProg,{passive:true}); addEventListener('resize',setProg,{passive:true}); setProg();
 
   // copy buttons
   document.addEventListener('click',async(ev)=>{

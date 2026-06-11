@@ -250,10 +250,10 @@ Amendments are how the protocol becomes the team's protocol. The default rules i
 
 When the user wants to start a new polis (or when an agent enters a project that does not yet have one), bootstrap it.
 
-The fastest path is the `scripts/init_polis.py` script. Run it with:
+The fastest path is the published CLI — `uvx` always fetches the latest release from PyPI, so users stay current automatically:
 
 ```
-python scripts/init_polis.py \
+uvx polis-protocol init \
   --project-root <path> \
   --agent-id <your-agent-id> \
   --vendor <anthropic|openai|google|other> \
@@ -261,7 +261,9 @@ python scripts/init_polis.py \
   --project-name "<name>"
 ```
 
-The script writes the full `_polis/` structure, the constitution, a first capability card for the founding agent, a seed `chronicle.md`, an empty `routing_stats.yml`, and the cross-tool bridge pointers (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) at the project root. It is idempotent; running it twice will not clobber existing files unless `--force` is set.
+(Equivalent: `pipx install polis-protocol` then `polis init …`; or, from a repo checkout, `python scripts/init_polis.py …` with the same flags.)
+
+The command writes the full `_polis/` structure, the constitution, a first capability card for the founding agent, a seed `chronicle.md`, an empty `routing_stats.yml`, and the cross-tool bridge pointers (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) at the project root. It is idempotent and never overwrites existing files; `polis init --repair` restores any missing managed files, and `polis migrate --plan|--apply|--rollback` handles schema upgrades reversibly.
 
 If running the script is not available (the user is in a sandbox without Python, for example), bootstrap by hand using the templates in `references/templates.md`. The minimum viable polis is just `_polis/CONSTITUTION.md` plus your own capability card plus an empty `chronicle.md` with a frontmatter block.
 
