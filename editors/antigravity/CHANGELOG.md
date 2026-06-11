@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Polis 2.0: the extension now bundles the full v2 `polis` package — lessons that actually influence routing (named in `--explain`), content-hash card integrity, non-destructive init with `--repair`, reversible `polis migrate`, schema v2 + `polis doctor`, file reservations, guardrails, context packets, and Polis Bench.
+- Bundled `SKILL.md` updated to the v2 control-plane workflow (always-latest install via `uvx polis-protocol`).
+- Init/route commands run the bundled v2 package directly; works offline with no repo checkout.
+
 ## 0.1.2
 
 - Fix the Activity Bar icon rendering as a solid square. The view container now uses a dedicated transparent monochrome SVG mark (the colored badge is kept for the marketplace listing).
