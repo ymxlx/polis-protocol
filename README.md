@@ -195,6 +195,27 @@ polis reserve src/auth --as claude-research-yourproject --note "refactoring logi
 polis release src/auth --as claude-research-yourproject
 ```
 
+### Plug it into your agent over MCP
+
+Every polis is also an MCP server — `polis mcp` speaks MCP over stdio with zero
+extra dependencies. It exposes the whole lifecycle as tools (status, open / route /
+claim / settle / abandon, context packets, reserve / release, guardrails) plus
+read-only resources (`polis://state`, `polis://replay`, `polis://replay/redacted`,
+`polis://constitution`):
+
+```bash
+# Claude Code
+claude mcp add polis -- uvx --from polis-protocol polis mcp
+
+# any other MCP client: command `uvx`, args `--from polis-protocol polis mcp`
+# (run it from inside the project, or add `--polis-root /path/to/_polis`)
+```
+
+Agents that can't shell out to a CLI can now open contracts, get an explainable
+routing recommendation, reserve files, and settle with evidence — through the
+same shared application layer the CLI and dashboard use. Nothing ever hand-edits
+`_polis/` files.
+
 ---
 
 ## Proof, measured honestly
@@ -335,9 +356,9 @@ The migration path from `agent-vault` is documented in [`references/troubleshoot
 
 **v2.0.0a0 (alpha) — [on PyPI](https://pypi.org/project/polis-protocol/).** The protocol stays
 intentionally minimal — every file is markdown in your repo, the only dependency is PyYAML, and
-there is no server or database. The `polis` CLI covers
-`init · route · reconcile · status · contract · reserve/release · guardrail · bench · doctor · verify · migrate`,
-backed by 11 test suites in CI across Python 3.10–3.13. Schema v2 (`_polis/polis.yml`) migrates
+there is no required server or database. The `polis` CLI covers
+`init · route · reconcile · status · contract · reserve/release · guardrail · bench · serve · mcp · report · doctor · verify · migrate`,
+backed by 13 test suites in CI across Python 3.10–3.13. Schema v2 (`_polis/polis.yml`) migrates
 reversibly via `polis migrate --plan|--apply|--rollback`. Forks, issues, and amendments welcome.
 
 ---
