@@ -22,6 +22,7 @@ commands:
   contract    Manage contracts: open | list | claim | settle | abandon | context
   bench       Polis Bench (--mode routing|learning): proof, measured honestly
   serve       Local read-only dashboard (http://127.0.0.1:7341)
+  mcp         Serve the polis lifecycle as an MCP server (stdio) for any agent
   report      Write a shareable Polis Replay (--format md|html, --redact)
   guardrail   Record/list must-pass checks learned from failures (add | list)
   status      Summarize the polis: citizens, open/settled contracts, routing
@@ -520,6 +521,9 @@ def main(argv=None):
         return cmd_guardrail(rest)
     if cmd == "serve":
         return cmd_serve(rest)
+    if cmd == "mcp":
+        from . import mcp_server
+        return mcp_server.main(rest)
     if cmd == "report":
         return cmd_report(rest)
     if cmd == "doctor":
