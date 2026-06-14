@@ -354,7 +354,7 @@ The migration path from `agent-vault` is documented in [`references/troubleshoot
 
 ## Status
 
-**v2.0.0a0 (alpha) — [on PyPI](https://pypi.org/project/polis-protocol/).** The protocol stays
+**v2.0.0a1 (alpha) — [on PyPI](https://pypi.org/project/polis-protocol/).** The protocol stays
 intentionally minimal — every file is markdown in your repo, the only dependency is PyYAML, and
 there is no required server or database. The `polis` CLI covers
 `init · route · reconcile · status · contract · reserve/release · guardrail · bench · serve · mcp · report · doctor · verify · migrate`,
