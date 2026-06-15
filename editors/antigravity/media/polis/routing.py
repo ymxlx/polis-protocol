@@ -279,6 +279,64 @@ def pick_recommendation(scores: list, explore_rate: float, rng: random.Random) -
     return scores_sorted[0]["citizen"], False, scores_sorted[0]["total"]
 
 
+def recommend(polis_root, contract_id, seed=None, adaptive=False) -> dict:
+    """Score every citizen for an open contract and pick a recommendation.
+
+    The shared routing entrypoint for the MCP server and dashboard; ``main()``
+    keeps the path-based CLI surface. Read-only — nothing is written to the
+    contract. Returns the pick plus the full per-citizen score breakdown so
+    callers can show *why* (the explainability contract of Polis routing).
+    """
+    from .contracts import find_contract, OPEN
+
+    polis_root = Path(polis_root)
+    path, state = find_contract(polis_root, contract_id)
+    if not path:
+        return {"ok": False, "reason": "contract not found"}
+    if state != OPEN:
+        return {"ok": False, "reason": f"contract is {state}, not open"}
+    contract_fm, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
+    if not contract_fm:
+        return {"ok": False, "reason": "contract file has no YAML frontmatter"}
+
+    citizens = load_citizens(polis_root)
+    if not citizens:
+        return {"ok": False, "reason": "no registered citizens; nothing to route to"}
+
+    stats = load_routing_stats(polis_root)
+    lessons = load_lessons(polis_root)
+    explore_rate = stats.get("explore_rate", 0.15)
+    weights = WEIGHTS_DEFAULT
+    from . import config as _config
+    if _config.has_config(polis_root):
+        _routing_cfg = _config.load_config(polis_root).get("routing", {}) or {}
+        weights = _routing_cfg.get("weights", WEIGHTS_DEFAULT)
+        explore_rate = _routing_cfg.get("explore_rate", explore_rate)
+
+    if adaptive:
+        required_tags = contract_fm.get("required_tags") or []
+        confidences = [stats.get("tags", {}).get(t, {}).get("leader_confidence", 0.0)
+                       for t in required_tags]
+        explore_rate = adaptive_explore_rate(explore_rate, min(confidences) if confidences else 0.0)
+
+    scores = []
+    for cid, card in citizens.items():
+        status = load_citizen_status(polis_root, cid)
+        scores.append(score_citizen(cid, card, status, contract_fm, stats, weights, lessons))
+
+    chosen, is_exploration, chosen_score = pick_recommendation(
+        scores, explore_rate, random.Random(seed))
+    return {
+        "ok": True,
+        "contract_id": contract_fm.get("contract_id", contract_id),
+        "recommendation": chosen,
+        "score": chosen_score,
+        "exploration": is_exploration,
+        "explore_rate": explore_rate,
+        "scores": sorted(scores, key=lambda s: s["total"], reverse=True),
+    }
+
+
 def _extract_quality(fm: dict, body: str) -> int:
     """Return the contract's quality self-score (1-5).
 

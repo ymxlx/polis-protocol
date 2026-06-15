@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Listing now links to the project website ([polis-protocol.vercel.app](https://polis-protocol.vercel.app)) as the marketplace homepage.
+
 ## 0.2.0
 
 - Polis 2.0: the extension now bundles the full v2 `polis` package — lessons that actually influence routing (named in `--explain`), content-hash card integrity, non-destructive init with `--repair`, reversible `polis migrate`, schema v2 + `polis doctor`, file reservations, guardrails, context packets, and Polis Bench.

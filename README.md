@@ -1,3 +1,4 @@
+<!-- mcp-name: io.github.yehudalevy-collab/polis-protocol -->
 <p align="center">
   <img src="assets/banner.png" alt="Polis Protocol — three AI agents, one protocol, unified intelligence" width="100%" />
 </p>
@@ -6,6 +7,7 @@
 
 > The local-first control plane for coding agents. Run Claude, Codex, Gemini, and Cursor against one repo — every task gets an owner, every handoff carries evidence, and the team measurably stops repeating its own mistakes. Plain markdown, in git, across every vendor.
 
+[![Website](https://img.shields.io/badge/website-polis--protocol.vercel.app-E8B24C)](https://polis-protocol.vercel.app)
 [![tests](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml/badge.svg)](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/polis-protocol?label=pypi&color=2b7)](https://pypi.org/project/polis-protocol/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -13,6 +15,8 @@
 [![Skill](https://img.shields.io/badge/format-Claude%20Skill-blueviolet)](SKILL.md)
 [![Vendor-agnostic](https://img.shields.io/badge/vendor-agnostic-success)]()
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+**🌐 Website → [polis-protocol.vercel.app](https://polis-protocol.vercel.app)** &nbsp;·&nbsp; [Install](#quick-start) &nbsp;·&nbsp; [Proof](#proof-measured-honestly) &nbsp;·&nbsp; [Plug into your agent (MCP)](#plug-it-into-your-agent-over-mcp)
 
 <p align="center">
   <img src="assets/demo.gif" alt="30 second Polis Protocol terminal demo" width="100%" />
@@ -354,12 +358,14 @@ The migration path from `agent-vault` is documented in [`references/troubleshoot
 
 ## Status
 
-**v2.0.0a1 (alpha) — [on PyPI](https://pypi.org/project/polis-protocol/).** The protocol stays
-intentionally minimal — every file is markdown in your repo, the only dependency is PyYAML, and
-there is no required server or database. The `polis` CLI covers
+**v2.0.0a2 (alpha) — [on PyPI](https://pypi.org/project/polis-protocol/) · [website](https://polis-protocol.vercel.app).**
+The protocol stays intentionally minimal — every file is markdown in your repo, the only dependency
+is PyYAML, and there is no required server or database. The `polis` CLI covers
 `init · route · reconcile · status · contract · reserve/release · guardrail · bench · serve · mcp · report · doctor · verify · migrate`,
 backed by 13 test suites in CI across Python 3.10–3.13. Schema v2 (`_polis/polis.yml`) migrates
-reversibly via `polis migrate --plan|--apply|--rollback`. Forks, issues, and amendments welcome.
+reversibly via `polis migrate --plan|--apply|--rollback`. Listing `polis mcp` in the official MCP
+registry is a one-time manual step — see [`docs/publishing-mcp-registry.md`](docs/publishing-mcp-registry.md).
+Forks, issues, and amendments welcome.
 
 ---
 
