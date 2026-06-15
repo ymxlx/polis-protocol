@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.yehudalevy-collab/polis-protocol",
+  "title": "Polis Protocol",
+  "description": "Local-first control plane for coding agents: contracts with owners and evidence, deterministic file reservations, and learning routing — exposed as MCP tools and resources.",
+  "version": "2.0.0a2",
+  "websiteUrl": "https://polis-protocol.vercel.app",
+  "repository": {
+    "url": "https://github.com/yehudalevy-collab/polis-protocol",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "polis-protocol",
+      "version": "2.0.0a2",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp",
+          "description": "Run the polis lifecycle as a stdio MCP server (auto-detects the nearest _polis/ workspace; pass --polis-root to override)."
+        }
+      ]
+    }
+  ]
+}
