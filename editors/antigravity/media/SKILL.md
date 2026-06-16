@@ -1,344 +1,151 @@
 ---
 name: polis-protocol
-description: Set up a self-optimizing multi-vendor AI agent team using the Polis Protocol — a markdown-based "small city" where each agent is a citizen with a content-hashed capability card, tasks are structured contracts routed to whoever has the strongest track record by a learning bandit, settled contracts produce lessons that compound into team memory, and citizens can ratify amendments to the protocol itself. Use whenever several AI agents (Anthropic, OpenAI, Google, or any vendor) collaborate on one project and "who should do this" is a real question; when you want work routed to whichever model is best at it; when you want a team that measurably gets better over time; or to set up a new polis, register or join as a citizen, open, claim, or settle a contract, file a lesson, propose or vote on an amendment, run a chavruta review before a high-stakes irreversible action, troubleshoot a stalled contract or router pathology, override a routing recommendation, or migrate from a simpler shared-vault setup (e.g. agent-vault) to add routing and self-improvement. Also trigger on "_polis folder", "polis", "capability card", "task contract", "chronicle.md", "chavruta review", "bandit routing", "agent routing", "cross-vendor coordination", "self-improving agent team", "register a citizen", "ratify an amendment", "CONSTITUTION.md", even when the user does not explicitly name the protocol. Pick this when optimization and team development matter, not only communication; for pure note-passing between agents without routing, prefer agent-vault.
+description: Set up and run a self-improving, multi-vendor AI agent team with the Polis Protocol — a markdown `_polis/` folder where each agent is a citizen with a capability card, tasks are contracts routed to whoever has the best track record by a learning router, settled work files lessons that compound into team memory, and citizens can amend the protocol itself. Use whenever several AI agents (any vendor) share one project and "who should do this" is a real question: founding a polis, registering as a citizen, opening/claiming/settling a contract, filing a lesson, running a chavruta review before a high-stakes action, proposing or voting on an amendment, troubleshooting a stalled contract or router pathology, or migrating from agent-vault to add routing. Also triggers on "_polis", "polis", "capability card", "task contract", "chronicle.md", "chavruta", "bandit routing", "agent routing", "cross-vendor coordination", "CONSTITUTION.md" — even when the protocol is not named. For pure note-passing without routing, prefer agent-vault.
 ---
 
 # Polis Protocol: A Self-Optimizing City of Agents
 
-A protocol that lets a team of AI agents from different vendors collaborate on a long-running project, route work to whoever is best at it, and get measurably better over time. The whole thing lives in a folder of markdown files, so any tool that can read and write text can participate.
+A protocol that lets AI agents from different vendors collaborate on a long-running project, route work to whoever is best at it, and get measurably better over time. Everything lives in a folder of markdown files, so any tool that reads and writes text can participate — no central server, no required runtime.
 
 ## The core idea
 
-Treat the project as a small *polis*: a city of citizens (the agents) that share a constitution (the protocol), publish public identities (capability cards), enter into contracts (tasks), and leave a public record of how things went (lessons). The polis has three institutions, and a fourth mechanism that lets the city itself change:
+Treat the project as a small *polis*: citizens (the agents) that share a constitution (the protocol), publish public identities (capability cards), enter contracts (tasks), and leave a public record of how things went (lessons). Three institutions plus a self-change mechanism:
 
-1. **The Register**: identity and capability discovery.
-2. **The Contract**: structured tasks with learned routing.
-3. **The Chronicle**: lessons that compound and feed back into routing.
-4. **The Amendment**: a way for citizens to change the rules of the polis when reality demands it.
+1. **The Register** — identity and capability discovery (capability cards).
+2. **The Contract** — structured tasks with learned routing.
+3. **The Chronicle** — lessons that compound and feed back into routing.
+4. **The Amendment** — citizens change the rules when reality demands it.
 
-Together these give the team three things that simpler shared-vault approaches don't: cross-vendor optimization (work goes to whichever agent is actually best at it), self-development (the team's routing policy improves with use), and constitutional evolution (the protocol updates itself based on observed friction). Communication is the floor; this protocol aims at communication, optimization, and development at once.
-
-The whole thing is portable because every artifact is a markdown file with structured YAML frontmatter. There is no central server. There is no required runtime. Any agent that can read and write text can participate.
+This buys what shared-vault setups don't: cross-vendor optimization (work goes to whoever is best at it), self-development (routing improves with use), and constitutional evolution (the protocol updates itself from friction). For pure note-passing without routing, prefer agent-vault.
 
 ## When this skill is active
 
-Activate this skill when the user is doing any of the following:
-
-- Setting up a new polis (bootstrapping the constitution, capability registry, contract folder, and chronicle).
-- Joining an existing polis as a new agent (publishing a capability card, reading the constitution, catching up on the chronicle, claiming a contract).
-- Writing a new contract (drafting intent and acceptance criteria, scoring candidate agents, routing).
-- Settling a contract (recording the outcome, writing the lesson, updating capability stats).
-- Running a chavruta review (paired critique of a high-stakes plan before execution).
-- Proposing or ratifying an amendment to the protocol.
-- Diagnosing a stalled contract, a sync conflict, a router pathology, or a quorum that cannot be reached.
-
-If the user describes any multi-agent scenario where "who should do this" is a real question rather than "fine, whoever is available", this protocol applies. If the user already has agent-vault running and wants to upgrade, the migration path is straightforward (see `references/troubleshooting.md`, section "Migrating from agent-vault").
+Any multi-agent scenario where "who should do this" is a real question: founding or joining a polis; writing, claiming, or settling a contract; running a chavruta review; proposing or ratifying an amendment; or diagnosing a stalled contract, sync conflict, router pathology, or stuck quorum. Upgrading from agent-vault → `references/troubleshooting.md` ("Migrating from agent-vault").
 
 ## Structure of a polis
 
-A polis lives inside a folder called `_polis/` at the project root. The underscore prefix keeps it at the top of the file tree in Obsidian, VS Code, and most other tools. Everything outside `_polis/` is project content and the protocol does not touch it.
+A polis lives in a `_polis/` folder at the project root; everything outside it is project content the protocol never touches.
 
-```
-<project-root>/
-├── CLAUDE.md / AGENTS.md / GEMINI.md        (cross-tool entry pointers)
-├── .agents/skills/polis-protocol/SKILL.md   (Codex-format skill copy)
-├── _polis/
-│   ├── CONSTITUTION.md                      (canonical tool-agnostic protocol)
-│   ├── README.md                            (protocol explainer for humans)
-│   ├── index.md                             (canonical project state)
-│   ├── chronicle.md                         (append-only event log)
-│   ├── citizens/
-│   │   └── <agent-id>/
-│   │       ├── capability_card.yml          (content-hashed capability manifest)
-│   │       ├── status.md                    (current state, last-seen pointer)
-│   │       ├── inbox.md                     (messages from other citizens)
-│   │       └── journal.md                   (private working notes)
-│   ├── contracts/
-│   │   ├── open/<contract-id>.md            (currently active)
-│   │   ├── settled/<contract-id>.md         (closed with retrospective)
-│   │   └── routing_stats.yml                (learned policy, updated on settle)
-│   ├── lessons/
-│   │   └── <capability-tag>/<lesson-id>.md  (filed by capability)
-│   ├── reviews/
-│   │   └── <YYYY-MM-DD-HHMM>-<contract>.md  (chavruta critique notes)
-│   └── amendments/
-│       ├── proposed/<amendment-id>.md
-│       └── ratified/<amendment-id>.md
-└── <project content folders>                (untouched)
-```
+- `CONSTITUTION.md` — canonical tool-agnostic protocol · `index.md` — current state · `README.md` — human explainer
+- `chronicle.md` — append-only event log
+- `citizens/<agent-id>/` — `capability_card.yml`, `status.md`, `inbox.md`, `journal.md`
+- `contracts/open/<id>.md` · `contracts/settled/<id>.md` · `contracts/routing_stats.yml` (learned policy, updated on settle)
+- `lessons/<capability-tag>/<id>.md` · `reviews/<YYYY-MM-DD-HHMM>-<contract>.md` · `amendments/proposed|ratified/`
+- Project root also gets `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` bridge pointers and `.agents/skills/polis-protocol/SKILL.md` (Codex/Antigravity copy), all pointing at `CONSTITUTION.md`.
 
-Citizens link to project files using standard wikilinks (`[[path/to/note]]`). The `_polis/` folder is the only thing the protocol owns.
+Citizens link to project files with wikilinks (`[[path/to/note]]`). The `_polis/` folder is the only thing the protocol owns.
 
 ## The first thing to do every session
 
-Before touching any project file, an agent runs the entry routine, in this order. This is the same shape as a well-run team meeting: read the state, hear what's pending for you, see what's in flight, then start work.
+Before touching any project file, run the entry routine, in order:
 
-1. **Check that the polis exists.** Look for `_polis/CONSTITUTION.md` at the project root. If it does not exist, scaffold it (see "Founding a polis").
-2. **Check that you are registered.** Look for `_polis/citizens/<self>/capability_card.yml`. If it does not exist, register (see "Registering a citizen").
-3. **Read `_polis/CONSTITUTION.md` if you have not already in this session.** The constitution is the canonical version of this protocol; this SKILL.md is equivalent, but the constitution is what other tools read.
-4. **Read `_polis/index.md`.** Short summary of where things stand. Two-minute read at most.
-5. **Read your inbox.** `_polis/citizens/<self>/inbox.md` holds anything other citizens left for you.
-6. **Scan the tail of `chronicle.md`.** Read backward from the end until you hit the timestamp recorded in your `status.md` under `last_seen_event:`. That is your catch-up.
-7. **Read your open contracts.** Anything in `_polis/contracts/open/` with `owner: <self>` in its frontmatter.
-8. **Update `last_seen_event` and `last_active` in your `status.md`.** This is how your next session knows where to pick up.
-9. **Report back to the user.** A short summary: state of the project, what is in flight, what wants your input, and a concrete suggestion for the first move.
+1. **Polis exists?** Look for `_polis/CONSTITUTION.md`. If absent, scaffold it (see "Founding a polis").
+2. **You are registered?** Look for `_polis/citizens/<self>/capability_card.yml`. If absent, register (see "Registering a citizen").
+3. **Read `_polis/CONSTITUTION.md`** once per session — it is the canonical protocol for this polis; this SKILL.md is the seed it grew from.
+4. **Read `_polis/index.md`** — where things stand (a two-minute read).
+5. **Read your inbox** — `_polis/citizens/<self>/inbox.md`.
+6. **Scan the tail of `chronicle.md`** backward until you reach the `last_seen_event:` in your `status.md`. That is your catch-up.
+7. **Read your open contracts** — anything in `_polis/contracts/open/` with `owner: <self>`.
+8. **Update `last_seen_event` and `last_active` in your `status.md`.**
+9. **Report back to the user** — state of the project, what's in flight, what needs their input, a concrete first move.
 
-The whole routine should take a couple of small reads. If `chronicle.md` has grown large, the rollover policy (see `references/troubleshooting.md`) keeps it bounded.
+If `chronicle.md` has grown large, the rollover policy (`references/troubleshooting.md`) keeps it bounded.
 
-## Recording what you did: the chronicle
+## The chronicle: recording what you did
 
-After each meaningful action, append exactly one line to `_polis/chronicle.md`. The format is rigid on purpose, because the chronicle is parsed by the router and by other citizens, and an unreadable log is worse than no log at all.
+After each meaningful action, append exactly one line to `_polis/chronicle.md`. The format is rigid because the router and other citizens parse it:
 
 ```
 - YYYY-MM-DD HH:MM | <agent-id> | <verb-phrase> | [[<wikilink>]] | <one-line note or - >
+- 2026-05-14 09:15 | codex-frontend-pesaj | settled contract | [[contracts/settled/auth-refactor]] | tests passing, lesson filed
 ```
 
-Examples:
+A meaningful action is anything another citizen needs to know about (contract opened/settled, handoff, blocker, review requested, amendment proposed, index-keeper change). Internal reasoning and minor edits stay in your private `journal.md` and never reach the chronicle — protecting its signal-to-noise ratio is the single most important discipline.
 
-```
-- 2026-05-14 09:12 | claude-research-pesaj | drafted outline | [[contracts/open/literature-review]] | covers 2019-2025, 14 papers
-- 2026-05-14 09:15 | codex-frontend-pesaj  | settled contract | [[contracts/settled/auth-refactor]] | tests passing, lesson filed
-- 2026-05-14 09:18 | gemini-translator-es  | requested review | [[reviews/2026-05-14-0918-spanish-rollout]] | high-stakes, needs chavruta
-```
+Reserved verb phrases carry meaning scripts may filter on: `joined`/`left polis`, `opened`/`claimed`/`settled`/`abandoned contract`, `filed lesson`, `requested review`/`signed off`/`rejected review`, `proposed`/`ratified`/`rejected amendment`, `blocked on <thing>`/`unblocked`, `assumed`/`released index keeper`. Full semantics in `references/protocol-spec.md`; otherwise use plain past-tense verbs.
 
-A meaningful action is anything another citizen needs to know about: a contract opened or settled, a handoff, a blocker hit, a review requested, an amendment proposed, an index keeper change. Internal reasoning and minor edits stay in your private `journal.md` and never reach the chronicle. The signal-to-noise ratio of the chronicle is the single most important thing to protect.
-
-Reserved verb phrases (these carry semantic meaning that scripts and other agents may filter on):
-
-- `joined polis`, `left polis`: registration and retirement.
-- `opened contract`, `claimed contract`, `settled contract`, `abandoned contract`: contract lifecycle.
-- `filed lesson`: a retrospective was written into `lessons/`.
-- `requested review`, `signed off`, `rejected review`: chavruta lifecycle.
-- `proposed amendment`, `ratified amendment`, `rejected amendment`: amendment lifecycle.
-- `blocked on <thing>`, `unblocked`: state transitions for tracking.
-- `assumed index keeper`, `released index keeper`: rotation of the index-keeping role.
-
-For everything else, use plain past-tense verbs.
+**Granularity — the most common failure is over-recording:** would another citizen waste time, make the wrong call, or duplicate work if this is *not* recorded? If yes, record it; if no, don't. Calibration table in `references/troubleshooting.md`.
 
 ## The Register: capability cards
 
-Every citizen publishes one file: `_polis/citizens/<agent-id>/capability_card.yml`. This is the polis's answer to "who can do what". It replaces the unstructured profile of older protocols with something machine-parseable, so the router can actually use it.
-
-A capability card looks like this:
+Every citizen publishes `_polis/citizens/<agent-id>/capability_card.yml` — the machine-parseable answer to "who can do what":
 
 ```yaml
 agent_id: claude-research-pesaj
-vendor: anthropic
-model: claude-opus-4-7
-tool: claude.ai web
-registered: 2026-05-14 09:00:00
-languages: [es, en, he]
+vendor: anthropic        # model: claude-opus-4-7
 capability_tags:
-  - long-context-reading: { self_rating: 5, evidence: "150k token context window" }
-  - source-checking:      { self_rating: 4, evidence: "thorough but slow" }
-  - spanish-translation:  { self_rating: 3, evidence: "native-ish but not certified" }
-  - frontend-code:        { self_rating: 2, evidence: "can do simple HTML, not React" }
-cost_envelope:
-  relative: medium       # one of: low, medium, high
-  notes: "API-priced, fine for non-trivial tasks"
-latency_envelope:
-  typical_minutes: 3
-  max_minutes: 30
-standing_instructions: |
-  - Prefer simple, accessible vocabulary in written outputs.
-  - When uncertain, ask before guessing.
-content_hash: "sha256:abc123..."   # tamper-evidence, not a cryptographic signature
+  long-context-reading: { self_rating: 5, evidence: "150k token context" }
+  spanish-translation:  { self_rating: 3, evidence: "native-ish, not certified" }
+cost_envelope: { relative: medium }   # low|medium|high   latency: typical/max minutes
+content_hash: "sha256:…"   # tamper-evidence, not a cryptographic signature
 ```
 
-A few rules that keep this useful rather than ceremonial:
-
-- **Self-ratings are starting points, not truth.** They seed the router. Actual performance (recorded in `routing_stats.yml`) takes over within a handful of tasks per tag.
-- **Capability tags should be specific.** `frontend-code` is too vague; `react-component-design`, `css-responsive-layout`, and `tailwind-styling` are useful. Tags accrete naturally as contracts get written.
-- **Edit your own card freely.** The card is a living document. When you learn you are bad at something, lower the rating. When you pick up a new tool, add the tag.
-- **The `content_hash` is tamper-evidence, not security.** It is a SHA-256 of the card's content, so other citizens can tell if a card was edited since it was last stamped (`polis verify`). It does **not** prove *who* made the edit — real cryptographic identity is out of scope for a markdown protocol, which is why we don't call it a "signature".
-
-When a new agent joins the polis, they write their own card. They do not need anyone's permission. The Register is open by design.
+Self-ratings are starting points, not truth — actual performance in `routing_stats.yml` takes over within a few tasks per tag. Keep tags specific (`react-component-design`, not `frontend-code`), edit your own card freely as you learn, and treat `content_hash` as tamper-evidence (it shows a card changed since last stamped via `polis verify`, not *who* changed it). New agents write their own card without asking — the Register is open by design. Full schema: `references/protocol-spec.md`.
 
 ## The Contract: structured tasks with learned routing
 
-Tasks in the polis are not free-form notes. They are contracts with three sections, written in that order over the lifetime of the contract:
+Contracts have three sections written over the contract's life: **Intent** (goal, acceptance criteria, required capability tags, deadline, cost ceiling, stakes) at open; **Assignment** (owner, approach, effort) at claim; **Settlement** (outcome, what worked/bit, lesson reference, quality score) at close. Schema in `references/protocol-spec.md`; templates in `references/templates.md`.
 
-1. **Intent** (written when the contract is opened): goal, acceptance criteria, required capability tags, deadline, cost ceiling, stakes level.
-2. **Assignment** (written when a citizen claims or is routed to the contract): owner, planned approach, estimated effort.
-3. **Settlement** (written when the contract closes): outcome, what worked, what bit the owner, lesson reference, quality score.
+**Routing** is a multi-armed bandit: for each required tag, score every citizen from self-rating (weighted heavily at cold-start), historical quality in `routing_stats.yml`, cost, and availability; usually route to the top score (exploit), occasionally to another (explore, default 15%) to keep the policy honest. Runs as `scripts/route_contract.py` or as a brief reasoning step — same recommendation either way. It is a recommendation, **not a command**: any citizen may override by claiming and noting why in the `Assignment` section; overrides are logged and feed the policy. Math and tuning: `references/routing.md`.
 
-The full schema is in `references/protocol-spec.md`. Use the templates in `references/templates.md` when opening, claiming, or settling a contract.
-
-### How contracts get routed
-
-When a contract is opened, the router decides who to assign it to. The default routing policy is a multi-armed bandit:
-
-- For each capability tag listed in the contract's `required_tags`, look up the historical performance of each registered citizen in `_polis/contracts/routing_stats.yml`.
-- Score each citizen as a weighted combination of: self-rating (used heavily when there is no history yet), historical quality score on this tag, cost, and recent availability.
-- Most of the time (the exploit setting), route to the top-scored citizen.
-- Some of the time (the explore setting, defaults to 15%), route to a different citizen, to keep the policy honest about whether the leader is still actually the best.
-
-The exact math, the cold-start handling, and how to tune the explore rate live in `references/routing.md`. The router can be a 60-line Python script (`scripts/route_contract.py`) or a brief reasoning step inside any agent's session. Both produce the same recommendation; the script just makes it cheap and consistent.
-
-Routing is a recommendation, not a command. The user, or any citizen with reason to override, can claim a contract that the router did not recommend them for, by posting a one-line note in the contract's `Assignment` section explaining why. Overrides are also data: they get logged and contribute to the policy.
-
-### Settling a contract and filing the lesson
-
-When a contract closes, the owner does three things together:
-
-1. Writes the `Settlement` section of the contract: outcome, quality self-score, what to do differently next time.
-2. Creates a `lesson` file under `_polis/lessons/<capability-tag>/<lesson-id>.md`. One paragraph plus tags. This is what other citizens will read before taking similar contracts.
-3. Posts a `settled contract` line in `chronicle.md`.
-
-The router reads settled contracts and lessons periodically to update `routing_stats.yml`. That update is what makes the team get better over time.
-
-## The Chronicle of lessons: how the team develops
-
-The chronicle of events records what happened. The lessons folder records what was *learned*. The split matters because most events are not lessons, and most lessons distill many events.
-
-A lesson is short and structured:
-
-```yaml
----
-lesson_id: 2026-05-14-spanish-rollout-1
-filed_by: gemini-translator-es
-capability_tags: [spanish-translation, cultural-vocabulary]
-related_contracts: [contracts/settled/spanish-rollout]
-quality_impact: 3   # 1=trivial, 5=changes how we route this tag
----
-```
-
-```
-# Lesson: Spanish vocabulary in BA México context requires madrij not "líder"
-
-When translating youth-movement content for the BA México audience, the
-Hispanic-Spanish word "líder" reads as corporate; the loan-word "madrij"
-(Hebrew for guide, used in the movement) is the right choice and is what
-janijim expect. This applied across welcome packets, parent calls, and
-event invites. Future Spanish-translation contracts for any BA México
-property should default to madrij and similar movement vocabulary.
-```
-
-Lessons are *the* mechanism by which the polis improves. New contracts in the same capability tag pull recent lessons before being routed, so the routing decision and the executing agent both have the team's accumulated wisdom in context. Without this layer, every project is amnesiac; with it, the team builds institutional memory the way a real team does.
+**Settling** does three things together: write the `Settlement` section; create a lesson under `_polis/lessons/<tag>/<id>.md` (one paragraph + tags); post a `settled contract` chronicle line. The router reads settled contracts and lessons to update `routing_stats.yml` — that update is what makes the team improve. Lessons (frontmatter: `lesson_id`, `filed_by`, `capability_tags`, `related_contracts`, `quality_impact`, then one paragraph) are pulled by new contracts in the same tag before routing, so both the router and the executing agent carry the team's accumulated wisdom. This is what turns amnesiac agents into a team with institutional memory.
 
 ## Chavruta review for high-stakes contracts
 
-Borrowed from the paired-study model of the beit midrash, *chavruta review* is the polis's safeguard against single-model failure. Any contract flagged `stakes: high` in its intent (deletes data, ships to production, makes an architectural call, commits the project to a direction that would be expensive to reverse) requires a second citizen from a *different vendor* to critique the plan before execution.
-
-The flow:
-
-1. Owner writes the `Assignment` section of the contract, including a "Plan" paragraph.
-2. Owner posts `requested review` to the chronicle and writes a brief note in a reviewer's inbox. Pick a reviewer whose capability card shows strength in the relevant tag, ideally from a different vendor.
-3. Reviewer reads the plan, writes a critique note under `_polis/reviews/<YYYY-MM-DD-HHMM>-<contract-id>.md`. The note answers three questions: "What is the owner getting right?", "What might they be missing?", "Sign off, request changes, or reject?"
-4. If signed off, the owner executes. If changes are requested, the owner revises the plan and the cycle repeats once. If rejected, the owner either escalates to the user or abandons the contract.
-5. The review note is linked from the contract's `Settlement` section when it closes.
-
-Two citizens of the same vendor reviewing each other is allowed but weaker; the value of the chavruta is exactly the structural difference between models. The protocol does not enforce this, because a small polis may not have enough vendor diversity yet, but it strongly encourages it.
-
-Low-stakes contracts skip review entirely. Most contracts are low-stakes. Use this mechanism sparingly so it stays meaningful.
+Any contract flagged `stakes: high` (deletes data, ships to production, makes an architectural call, or commits to an expensive-to-reverse direction) requires a second citizen — ideally **from a different vendor** — to critique the plan before execution. Flow: owner writes the `Assignment` "Plan" and posts `requested review` + an inbox note to a strong reviewer → reviewer writes `_polis/reviews/<ts>-<contract>.md` answering "what's right / what's missing / sign off, request changes, or reject" → on sign-off the owner executes; on changes, revise once and repeat; on reject, escalate or abandon. Same-vendor review is allowed but weaker — the structural difference between models is the whole value. Use sparingly; most contracts are low-stakes and skip it. Details: `references/protocol-spec.md`.
 
 ## The Amendment: a polis that updates itself
 
-Most protocols are frozen at design time. The Polis Protocol is not. When a citizen notices a recurring failure, an unclear rule, or a routing pathology, they can propose an amendment.
-
-The flow:
-
-1. Citizen writes `_polis/amendments/proposed/<amendment-id>.md`. The file states: the problem, the proposed change to the constitution, and any new file format or rule that follows.
-2. Citizen posts `proposed amendment` to the chronicle and a one-line pointer to every citizen's inbox.
-3. Other citizens read and respond. Responses are appended to the amendment file as `### <YYYY-MM-DD> from <agent-id>: agree | disagree | abstain | request changes`, with a short rationale.
-4. When a quorum is reached (default: simple majority of currently active citizens, where "active" means a chronicle entry in the last 14 days), the proposing citizen, or any citizen, can move the file to `_polis/amendments/ratified/` and edit `_polis/CONSTITUTION.md` to reflect the change. Both actions get one chronicle line each.
-5. Rejected amendments stay in `proposed/` with `status: rejected` in their frontmatter. They are not deleted; future citizens may want to know what was tried.
-
-Amendments are how the protocol becomes the team's protocol. The default rules in this skill are a starting point; over time, a given polis will diverge in small ways that fit the project it serves. That divergence is a feature, not a bug. The constitution is always the canonical version for any specific polis; this SKILL.md is the seed it grew from.
+When a citizen notices a recurring failure, an unclear rule, or a routing pathology, they propose an amendment. Flow: write `_polis/amendments/proposed/<id>.md` (problem + proposed constitution change + any new rule/format) → post `proposed amendment` to the chronicle and a one-line pointer to every inbox → citizens respond in the file (`agree | disagree | abstain | request changes` + rationale) → on quorum (default: simple majority of citizens active in the last 14 days) move it to `ratified/` and edit `_polis/CONSTITUTION.md`, one chronicle line each. Rejected amendments stay in `proposed/` with `status: rejected` so future citizens know what was tried. The constitution is always canonical for a given polis; this SKILL.md is the seed. When to amend vs. work around, quorum rules, examples: `references/amendments.md`.
 
 ## Founding a polis
 
-When the user wants to start a new polis (or when an agent enters a project that does not yet have one), bootstrap it.
+If `_polis/CONSTITUTION.md` does not exist, found the polis. Three paths, in order of preference — use the first one available in your environment:
 
-The fastest path is the published CLI — `uvx` always fetches the latest release from PyPI, so users stay current automatically:
+1. **Online, latest (recommended).** `uvx` fetches the newest release from PyPI, so users stay current automatically:
+   ```
+   uvx polis-protocol init --project-root <path> --agent-id <your-agent-id> \
+     --vendor <anthropic|openai|google|other> --model <model-id> --project-name "<name>"
+   ```
+   (Equivalent: `pipx install polis-protocol` then `polis init …`.)
 
-```
-uvx polis-protocol init \
-  --project-root <path> \
-  --agent-id <your-agent-id> \
-  --vendor <anthropic|openai|google|other> \
-  --model <model-id> \
-  --project-name "<name>"
-```
+2. **Offline — no network, no install.** This skill ships a self-contained initializer next to its `templates/`. Run it with the same flags from the skill folder:
+   ```
+   python scripts/init_polis.py --project-root <path> --agent-id <your-agent-id> \
+     --vendor <…> --model <model-id> --project-name "<name>"
+   ```
+   It needs only Python 3 and the bundled `templates/` — no `polis` package, no network. Use this whenever `uvx`/`pipx` is unavailable (sandbox, offline, no PyPI) instead of hunting for a missing CLI.
 
-(Equivalent: `pipx install polis-protocol` then `polis init …`; or, from a repo checkout, `python scripts/init_polis.py …` with the same flags.)
+3. **By hand — no Python at all.** Copy the templates in `references/templates.md`. The minimum viable polis is `_polis/CONSTITUTION.md` + your own `capability_card.yml` + an empty `chronicle.md` with a frontmatter block.
 
-The command writes the full `_polis/` structure, the constitution, a first capability card for the founding agent, a seed `chronicle.md`, an empty `routing_stats.yml`, and the cross-tool bridge pointers (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) at the project root. It is idempotent and never overwrites existing files; `polis init --repair` restores any missing managed files, and `polis migrate --plan|--apply|--rollback` handles schema upgrades reversibly.
-
-If running the script is not available (the user is in a sandbox without Python, for example), bootstrap by hand using the templates in `references/templates.md`. The minimum viable polis is just `_polis/CONSTITUTION.md` plus your own capability card plus an empty `chronicle.md` with a frontmatter block.
+All three write the full `_polis/` structure (constitution, founder's capability card, seed `chronicle.md`, empty `routing_stats.yml`, and the `CLAUDE.md`/`AGENTS.md`/`GEMINI.md` bridge pointers). All are idempotent and never overwrite existing files. `polis init --repair` (or re-running the script) restores missing managed files; `polis migrate --plan|--apply|--rollback` handles schema upgrades reversibly.
 
 ## Registering a citizen into an existing polis
 
-When you (an agent) arrive at a project that already has `_polis/CONSTITUTION.md` but no card for you under `_polis/citizens/<your-id>/`, register yourself. Do not wait for permission.
+When you arrive at a project that has `_polis/CONSTITUTION.md` but no card for you, register yourself — do not wait for permission:
 
-1. Pick an agent ID following the naming rule below.
-2. Create your folder under `_polis/citizens/<your-id>/`.
-3. Write your `capability_card.yml` (see schema in `references/protocol-spec.md`).
-4. Create empty `status.md`, `inbox.md`, and `journal.md` from the templates.
-5. Post a `joined polis` line in `chronicle.md` with your card as the wikilink.
+1. Pick an agent ID (convention below).
+2. Create `_polis/citizens/<your-id>/`.
+3. Write `capability_card.yml` (schema in `references/protocol-spec.md`).
+4. Create empty `status.md`, `inbox.md`, `journal.md` from the templates.
+5. Post a `joined polis` line in `chronicle.md` linking your card.
 6. Continue with the entry routine.
 
-### Agent ID convention
-
-Use the format `<vendor-or-tool>-<role>-<project>`. The vendor-or-tool prefix matters because it lets any citizen scanning the chronicle see at a glance which model produced which line, which helps both with debugging (some vendors have characteristic failure modes) and with cross-vendor routing.
-
-Good examples: `claude-research-pesaj`, `codex-frontend-pesaj`, `gemini-translator-pesaj`, `gpt-copywriter-pesaj`.
-
-Bad examples: `agent-7a3f` (opaque), `helper` (too generic), `gemini-2026-05-14-1430` (timestamps are not identity).
-
-Lowercase, hyphens only, 8 to 40 characters. Once registered, do not rename; old chronicle lines will still reference the original ID.
-
-## Granularity guidance
-
-The most common failure mode is over-recording. Calibration table:
-
-| Action | Chronicle? | Lesson? | Capability card edit? |
-|---|---|---|---|
-| Fixed a typo in a contract | No | No | No |
-| Drafted a substantial new section | Yes | No | No |
-| Settled a contract | Yes | Yes | Maybe |
-| Discovered you are bad at a thing | No | Yes | Yes (lower rating) |
-| Discovered you are great at a thing | No | Yes | Yes (raise rating) |
-| Hit a real blocker | Yes (with `blocked on`) | Maybe | No |
-| Made an architectural decision | Yes | Yes | No |
-| Saw the same kind of issue three times in a row | No | One lesson summarizing | Maybe |
-| Noticed the protocol itself is the problem | No, propose an amendment | No | No |
-
-When in doubt: would another citizen waste time, make the wrong call, or duplicate work if this is not recorded? If yes, record it. If no, do not.
+**Agent ID convention:** `<vendor-or-tool>-<role>-<project>`. The vendor prefix lets any citizen see at a glance which model produced a chronicle line. Good: `claude-research-pesaj`, `codex-frontend-pesaj`, `gemini-translator-pesaj`. Bad: `agent-7a3f` (opaque), `helper` (generic), `gemini-2026-05-14-1430` (timestamps aren't identity). Lowercase, hyphens only, 8–40 chars; once registered, never rename.
 
 ## Working across vendors
 
-The protocol is vendor-agnostic. The same polis can be shared between Claude, Codex, Gemini CLI, GPT-based tools, and anything else that reads markdown. The bootstrap writes four extra files for cross-tool discovery:
-
-- `<project-root>/CLAUDE.md`: entry pointer for Claude Code.
-- `<project-root>/AGENTS.md`: entry pointer for Codex (and Jules, Aider, goose, opencode, Zed, Warp, VS Code, Devin).
-- `<project-root>/GEMINI.md`: entry pointer for Gemini CLI.
-- `<project-root>/.agents/skills/polis-protocol/SKILL.md`: a Codex-format skill copy.
-
-All four point to `_polis/CONSTITUTION.md`. Updating the protocol means editing that one file; pointers stay stable.
-
-Cross-vendor routing is where this protocol earns its keep: the bandit will route a Spanish translation to whichever citizen has the best track record on `spanish-translation`, not whichever one happens to be the user's current chat. Over time, this means the team's outputs are not bottlenecked by any single model's blind spots.
+The bridge pointers written at bootstrap let Claude, Codex, Gemini CLI, GPT-based tools, and anything that reads markdown share one polis (`AGENTS.md` also covers Jules, Aider, goose, opencode, Zed, Warp, VS Code, Devin). All point at `_polis/CONSTITUTION.md`, so the protocol updates in one file. Cross-vendor routing is the payoff: the bandit sends a translation to whoever has the best `spanish-translation` track record, not whoever happens to be the current chat.
 
 ## Failure modes and recovery
 
-A short list. The extended version is in `references/troubleshooting.md`.
-
-- **A citizen has gone silent.** Check their `status.md` and last chronicle entry. If a contract is stuck, post to their inbox. If they have been inactive past the project's stale threshold (default 14 days), file a one-amendment-line transfer of ownership and proceed.
-- **Two citizens claimed the same contract.** First-write-wins on the contract's `owner:` field. The losing citizen posts a chronicle line, drops the claim, and either picks another contract or posts to the winner's inbox offering help.
-- **The router keeps picking the wrong citizen.** Check `routing_stats.yml`; it may be cold-start (not enough data). Override manually for a few contracts to seed the policy. If it persists, propose an amendment to the routing weights.
-- **A capability card was edited by someone other than the owner.** The `content_hash` mismatch (`polis verify`) will flag it. Treat as a sync conflict, restore from history, and post a chronicle line.
-- **An amendment is stuck without a quorum.** Lower the activity threshold temporarily, or merge the amendment with related proposals to attract more responses. Amendments that sit for 30 days auto-expire.
-- **The polis is growing too large.** Roll over `chronicle.md` quarterly (`chronicle-YYYY-Qn.md`) and archive settled contracts older than 90 days. Lessons never roll over; they are the team's memory.
+Full recovery steps in `references/troubleshooting.md`. A citizen goes silent → check `status.md`; past the stale threshold, transfer ownership. Two citizens claim one contract → first-write-wins on `owner:`, loser re-picks. Router keeps picking wrong → likely cold-start; override a few to seed, else amend the weights. A card edited by a non-owner → `content_hash` mismatch via `polis verify`; restore and log. Amendment stuck without quorum → lower the activity threshold or merge proposals (30-day auto-expire). Polis too large → roll `chronicle.md` over quarterly, archive settled contracts past 90 days; lessons never roll over.
 
 ## References
 
-For deeper detail, consult these files. Each is short and focused.
-
-- `references/protocol-spec.md`: full schema for every file (capability card, contract, lesson, amendment, review note, status, inbox). Read this when you need to validate a file or parse another citizen's output.
-- `references/templates.md`: copy-paste templates for every file the protocol uses, with inline annotations. Read this when opening a contract, registering, filing a lesson, or proposing an amendment.
-- `references/routing.md`: the bandit math, scoring formulas, cold-start handling, explore-rate tuning, and how the router updates `routing_stats.yml` on settlement. Read this when you need to understand or override a routing decision.
-- `references/amendments.md`: deeper guidance on when an amendment is the right move versus a one-off workaround, the quorum rules, and worked examples of past amendments.
-- `references/troubleshooting.md`: failure modes, recovery procedures, scaling guidance, and the migration path from agent-vault.
-- `templates/POLIS_CONSTITUTION.md`: the tool-agnostic canonical protocol that gets written into each polis on bootstrap. The source of truth when refreshing a polis's constitution.
-
-Read the spec when validating a file format. Read the templates when bootstrapping or claiming. Read routing when the bandit picks weird. Read amendments when reaching for a rule change. Read troubleshooting when something broke.
+- `references/protocol-spec.md` — full schema for every file + reserved-verb semantics; read to validate or parse a file.
+- `references/templates.md` — annotated copy-paste templates; read when founding by hand, registering, or filing.
+- `references/routing.md` — bandit math, scoring, cold-start, explore-rate tuning; read when the router picks weird.
+- `references/amendments.md` — when to amend vs. work around, quorum rules, examples.
+- `references/troubleshooting.md` — failure modes, the granularity calibration table, scaling, agent-vault migration.
+- `templates/POLIS_CONSTITUTION.md` — the canonical protocol written into each polis on bootstrap.
