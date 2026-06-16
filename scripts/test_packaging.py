@@ -15,6 +15,13 @@ PAIRS = [
     ("templates/bridge_pointer.md", "polis/_data/templates/bridge_pointer.md"),
 ]
 
+# scripts/init_polis.py is the standalone, dependency-free init that ships inside
+# the skill bundle (a skill install has no `polis` package to import). It must stay
+# byte-identical to the package's polis/initializer.py so offline founding produces
+# exactly the same _polis/ as `uvx polis-protocol init`. Edit initializer.py, then
+# re-copy it over scripts/init_polis.py.
+INIT_SYNC = ("polis/initializer.py", "scripts/init_polis.py")
+
 
 class PackagingSyncTest(unittest.TestCase):
     def test_bundled_files_exist(self):
@@ -34,6 +41,28 @@ class PackagingSyncTest(unittest.TestCase):
         # data_path must point inside the package, not the repo root.
         self.assertTrue(str(initializer.data_path("SKILL.md")).endswith("polis/_data/SKILL.md"))
         self.assertTrue(initializer.data_path("templates").is_dir())
+
+    def test_skill_init_in_sync_with_package(self):
+        source, bundled = INIT_SYNC
+        self.assertTrue((ROOT / bundled).exists(), f"missing skill-bundled init: {bundled}")
+        self.assertEqual(
+            (ROOT / source).read_text(encoding="utf-8"),
+            (ROOT / bundled).read_text(encoding="utf-8"),
+            f"{bundled} is out of sync with {source}; re-copy it "
+            f"(cp {source} {bundled}) so the offline skill init matches the package.",
+        )
+
+    def test_skill_init_is_standalone(self):
+        # The skill-bundled init must not import the polis package (a skill install
+        # ships no package), so founding works with stdlib only.
+        text = (ROOT / INIT_SYNC[1]).read_text(encoding="utf-8")
+        offenders = [
+            line.strip()
+            for line in text.splitlines()
+            if line.lstrip().startswith(("import ", "from "))
+            and "polis" in line
+        ]
+        self.assertEqual(offenders, [], f"skill init must be stdlib-only; found: {offenders}")
 
 
 if __name__ == "__main__":
