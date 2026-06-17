@@ -21,7 +21,7 @@ commands:
   reconcile   Rebuild routing_stats.yml from settled contracts
   contract    Manage contracts: open | list | claim | settle | abandon | context
   bench       Polis Bench (--mode routing|learning): proof, measured honestly
-  serve       Local read-only dashboard (http://127.0.0.1:7341)
+  serve       Local control-plane dashboard — view + open/claim/settle/reserve (http://127.0.0.1:7341)
   mcp         Serve the polis lifecycle as an MCP server (stdio) for any agent
   report      Write a shareable Polis Replay (--format md|html, --redact)
   guardrail   Record/list must-pass checks learned from failures (add | list)
