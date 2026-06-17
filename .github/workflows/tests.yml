@@ -63,6 +63,9 @@ jobs:
       - name: Run MCP server test
         run: python3 scripts/test_mcp_server.py
 
+      - name: Run extension thin-client state test (node)
+        run: node editors/antigravity/test_state.js
+
       - name: Smoke-test init_polis.py
         run: |
           mkdir -p /tmp/smoke
