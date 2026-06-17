@@ -5,6 +5,8 @@ import sys
 import tempfile
 import threading
 import unittest
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -111,6 +113,90 @@ class ServeTest(unittest.TestCase):
         self.assertIn("claude-research-acme", plain)
         _, red = self._get("/replay.md?redact=1")
         self.assertNotIn("claude-research-acme", red)
+
+
+class ServeActionsTest(unittest.TestCase):
+    """POST write-actions: the dashboard as a real control plane, not just a viewer."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name) / "_polis"
+        self.root.mkdir(parents=True)
+        (self.root / "CONSTITUTION.md").write_text("# c\n", encoding="utf-8")
+        for cid in ("claude-dev-acme", "codex-dev-acme"):
+            d = self.root / "citizens" / cid
+            d.mkdir(parents=True)
+            (d / "capability_card.yml").write_text(
+                f"agent_id: {cid}\nvendor: x\ncapability_tags:\n  dev: {{self_rating: 4}}\n",
+                encoding="utf-8")
+        self.httpd = serve.make_server(self.root, port=0)
+        self.port = self.httpd.server_address[1]
+        threading.Thread(target=self.httpd.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        self.httpd.shutdown()
+        self.httpd.server_close()
+        self._tmp.cleanup()
+
+    def _post(self, path, data, host="127.0.0.1"):
+        body = json.dumps(data).encode("utf-8")
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}{path}", data=body,
+            headers={"Content-Type": "application/json", "Host": host}, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return r.status, r.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            return e.code, e.read().decode("utf-8")
+
+    def test_full_lifecycle_via_post(self):
+        status, body = self._post("/api/contract/open",
+                                  {"title": "Build X", "required_tags": "dev",
+                                   "opened_by": "claude-dev-acme"})
+        self.assertEqual(status, 200)
+        cid = json.loads(body)["contract_id"]
+        self.assertEqual(
+            self._post("/api/contract/claim", {"contract_id": cid, "citizen": "claude-dev-acme"})[0], 200)
+        self.assertEqual(
+            self._post("/api/contract/settle", {"contract_id": cid, "quality": "5", "minutes": "12"})[0], 200)
+        self.assertTrue(list((self.root / "contracts" / "settled").glob("*.md")))
+        self.assertFalse(list((self.root / "contracts" / "open").glob("*.md")))
+
+    def test_reserve_conflict_returns_409(self):
+        self.assertEqual(self._post("/api/reserve", {"citizen": "claude-dev-acme", "paths": "src/a.py"})[0], 200)
+        status, body = self._post("/api/reserve", {"citizen": "codex-dev-acme", "paths": "src/a.py"})
+        self.assertEqual(status, 409)
+        self.assertTrue(json.loads(body)["conflicts"])
+
+    def test_claim_already_owned_returns_409(self):
+        _, body = self._post("/api/contract/open",
+                             {"title": "T", "required_tags": "dev", "opened_by": "claude-dev-acme"})
+        cid = json.loads(body)["contract_id"]
+        self._post("/api/contract/claim", {"contract_id": cid, "citizen": "claude-dev-acme"})
+        self.assertEqual(
+            self._post("/api/contract/claim", {"contract_id": cid, "citizen": "codex-dev-acme"})[0], 409)
+
+    def test_settle_missing_contract_returns_404(self):
+        self.assertEqual(
+            self._post("/api/contract/settle", {"contract_id": "nope", "quality": "3"})[0], 404)
+
+    def test_cross_origin_post_forbidden(self):
+        self.assertEqual(self._post("/api/reserve", {"citizen": "x", "paths": "y"}, host="evil.com")[0], 403)
+
+    def test_unknown_action_returns_404(self):
+        self.assertEqual(self._post("/api/bogus", {})[0], 404)
+
+    def test_form_post_redirects_to_dashboard(self):
+        # A no-JS form post 303-redirects; urllib follows it to GET / (the dashboard).
+        body = urllib.parse.urlencode(
+            {"citizen": "claude-dev-acme", "paths": "src/x.py", "_redirect": "1"}).encode("utf-8")
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/reserve", data=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded", "Host": "127.0.0.1"},
+            method="POST")
+        with urllib.request.urlopen(req, timeout=5) as r:
+            self.assertEqual(r.status, 200)
+            self.assertIn("POLIS // CONTROL PLANE", r.read().decode("utf-8"))
 
 
 if __name__ == "__main__":
