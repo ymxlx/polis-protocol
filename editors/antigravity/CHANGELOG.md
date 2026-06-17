@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+- The Open Contracts and Citizens views are now thin clients of `polis serve`: when a dashboard is running they show live state (owners, capability tags, routing) from its `/api/state`, falling back to reading `_polis/` files when no server is up. New `polis.serveUrl` setting.
+- The status bar shows a broadcast icon when connected to a live `polis serve`.
+- Fixed the Citizens view, which previously always showed empty (it listed `.md` files in `_polis/citizens/`, but citizens are directories).
+
 ## 0.2.1
 
 - Listing now links to the project website ([polis-protocol.vercel.app](https://polis-protocol.vercel.app)) as the marketplace homepage.

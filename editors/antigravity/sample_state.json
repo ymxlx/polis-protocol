@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-06-17 14:37:04",
+  "citizens": {
+    "claude-dev-acme": {
+      "vendor": "anthropic",
+      "model": "m",
+      "tags": [
+        "dev"
+      ]
+    },
+    "codex-dev-acme": {
+      "vendor": "anthropic",
+      "model": "m",
+      "tags": [
+        "dev"
+      ]
+    }
+  },
+  "open": [
+    {
+      "contract_id": "wire-the-api",
+      "title": "Wire the API",
+      "opened_by": "claude-dev-acme",
+      "opened_at": "2026-06-17 14:37:04",
+      "owner": "claude-dev-acme",
+      "status": "claimed",
+      "stakes": "medium",
+      "required_tags": [
+        "dev"
+      ],
+      "deadline": null,
+      "cost_ceiling": "medium",
+      "acceptance_criteria": [],
+      "routing": {
+        "recommended_by_router": null,
+        "recommendation_score": null,
+        "exploration": null,
+        "override": null
+      },
+      "review": {
+        "required": false,
+        "reviewer": null,
+        "status": null
+      },
+      "settled_at": null,
+      "quality_score": null,
+      "actual_minutes": null
+    }
+  ],
+  "settled": [],
+  "abandoned": [],
+  "lessons": [],
+  "guardrails": [],
+  "reservations": [
+    {
+      "citizen": "claude-dev-acme",
+      "paths": [
+        "src/api.py"
+      ],
+      "reserved_at": "2026-06-17T20:37:04.222970+00:00",
+      "expires_at": null
+    }
+  ],
+  "stats": {
+    "explore_rate": 0.15,
+    "tags": {}
+  }
+}

@@ -5,6 +5,7 @@ const cp = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const state = require("./state");
 
 let output;
 
@@ -36,6 +37,11 @@ function polisRoot() {
 
 function hasPolis(root) {
   return !!root && fs.existsSync(path.join(root, "_polis", "CONSTITUTION.md"));
+}
+
+/** Base URL of a running `polis serve`, from settings (default 127.0.0.1:7341). */
+function serveUrl() {
+  return vscode.workspace.getConfiguration("polis").get("serveUrl", state.DEFAULT_URL);
 }
 
 /** Run a bundled python script, streaming output. Resolves {code, stdout}. */
@@ -170,27 +176,74 @@ async function cmdOpenConstitution() {
 
 // ───────────────────────── tree views ─────────────────────────
 
-class DirProvider {
-  constructor(subdir, emptyLabel) { this.subdir = subdir; this.emptyLabel = emptyLabel; this._e = new vscode.EventEmitter(); this.onDidChangeTreeData = this._e.event; }
+function emptyItem(label) {
+  const it = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
+  it.contextValue = "empty";
+  return it;
+}
+
+/** A tree item that opens `fullPath` (if it exists) when clicked. */
+function fileItem(label, description, fullPath, icon) {
+  const it = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
+  if (description) it.description = description;
+  if (icon) it.iconPath = new vscode.ThemeIcon(icon);
+  if (fullPath && fs.existsSync(fullPath)) {
+    it.command = { command: "vscode.open", title: "Open", arguments: [vscode.Uri.file(fullPath)] };
+    it.resourceUri = vscode.Uri.file(fullPath);
+  }
+  return it;
+}
+
+// The tree views are thin clients of `polis serve`'s /api/state when a server is
+// running (richer: owners, tags, routing); otherwise they fall back to listing
+// _polis/ files directly, so the extension still works with no server.
+
+class ContractsProvider {
+  constructor() { this._e = new vscode.EventEmitter(); this.onDidChangeTreeData = this._e.event; }
   refresh() { this._e.fire(); }
   getTreeItem(i) { return i; }
-  getChildren() {
+  async getChildren() {
     const root = polisRoot();
-    const dir = root ? path.join(root, "_polis", this.subdir) : null;
-    let files = [];
-    try { files = fs.readdirSync(dir).filter((f) => f.endsWith(".md")); } catch (_) { /* */ }
-    if (!files.length) {
-      const empty = new vscode.TreeItem(this.emptyLabel, vscode.TreeItemCollapsibleState.None);
-      empty.contextValue = "empty";
-      return [empty];
+    if (!root) return [emptyItem("No open contracts")];
+    const openDir = path.join(root, "_polis", "contracts", "open");
+    const st = await state.fetchState(serveUrl());
+    if (st) {
+      const rows = state.contractRows(st);
+      if (!rows.length) return [emptyItem("No open contracts")];
+      return rows.map((r) =>
+        fileItem(r.label, r.description, path.join(openDir, `${r.id}.md`),
+                 r.owner ? "person" : "circle-outline"));
     }
-    return files.map((f) => {
-      const it = new vscode.TreeItem(f.replace(/\.md$/, ""), vscode.TreeItemCollapsibleState.None);
-      const full = path.join(dir, f);
-      it.command = { command: "vscode.open", title: "Open", arguments: [vscode.Uri.file(full)] };
-      it.resourceUri = vscode.Uri.file(full);
-      return it;
-    });
+    let files = [];
+    try { files = fs.readdirSync(openDir).filter((f) => f.endsWith(".md")); } catch (_) { /* */ }
+    if (!files.length) return [emptyItem("No open contracts")];
+    return files.map((f) => fileItem(f.replace(/\.md$/, ""), undefined, path.join(openDir, f)));
+  }
+}
+
+class CitizensProvider {
+  constructor() { this._e = new vscode.EventEmitter(); this.onDidChangeTreeData = this._e.event; }
+  refresh() { this._e.fire(); }
+  getTreeItem(i) { return i; }
+  async getChildren() {
+    const root = polisRoot();
+    if (!root) return [emptyItem("No citizens yet")];
+    const citizensDir = path.join(root, "_polis", "citizens");
+    const card = (id) => path.join(citizensDir, id, "capability_card.yml");
+    const st = await state.fetchState(serveUrl());
+    if (st) {
+      const rows = state.citizenRows(st);
+      if (!rows.length) return [emptyItem("No citizens yet")];
+      return rows.map((r) => fileItem(r.label, r.description, card(r.id), "person"));
+    }
+    // Fallback: citizens are directories (each with a capability_card.yml).
+    let dirs = [];
+    try {
+      dirs = fs.readdirSync(citizensDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory()).map((d) => d.name);
+    } catch (_) { /* */ }
+    if (!dirs.length) return [emptyItem("No citizens yet")];
+    return dirs.map((id) => fileItem(id, undefined, card(id), "person"));
   }
 }
 
@@ -216,25 +269,29 @@ class ActionsProvider {
 // ───────────────────────── activate ─────────────────────────
 
 function activate(context) {
-  const contracts = new DirProvider("contracts/open", "No open contracts");
-  const citizens = new DirProvider("citizens", "No citizens yet");
+  const contracts = new ContractsProvider();
+  const citizens = new CitizensProvider();
   vscode.window.registerTreeDataProvider("polisContracts", contracts);
   vscode.window.registerTreeDataProvider("polisCitizens", citizens);
   vscode.window.registerTreeDataProvider("polisActions", new ActionsProvider());
 
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   status.command = "polis.route";
-  function updateStatus() {
+  async function updateStatus() {
     const root = polisRoot();
-    if (hasPolis(root)) {
-      let n = 0;
-      try { n = fs.readdirSync(path.join(root, "_polis", "contracts", "open")).filter((f) => f.endsWith(".md")).length; } catch (_) { /* */ }
-      status.text = `$(circuit-board) Polis: ${n} open`;
-      status.tooltip = "Polis Protocol — click to route an open contract";
-      status.show();
+    if (!hasPolis(root)) { status.hide(); return; }
+    const st = await state.fetchState(serveUrl());
+    let n = 0;
+    if (st) {
+      n = state.openCount(st);
     } else {
-      status.hide();
+      try { n = fs.readdirSync(path.join(root, "_polis", "contracts", "open")).filter((f) => f.endsWith(".md")).length; } catch (_) { /* */ }
     }
+    status.text = `$(circuit-board) Polis: ${n} open${st ? " $(broadcast)" : ""}`;
+    status.tooltip = st
+      ? `Polis Protocol — live from ${serveUrl()} · click to route`
+      : "Polis Protocol — click to route an open contract";
+    status.show();
   }
 
   const refresh = () => { contracts.refresh(); citizens.refresh(); updateStatus(); };

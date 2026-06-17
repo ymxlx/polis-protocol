@@ -2,7 +2,7 @@
   "name": "polis-protocol",
   "displayName": "Polis Protocol",
   "description": "Coordinate multi-vendor AI agents as a self-improving team — a learning router assigns work by track record and citizens can amend the protocol's own rules. Works in Antigravity, Cursor, and any VS Code-based editor.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "yehudalevy-collab",
   "license": "MIT",
   "icon": "icon.png",
@@ -117,9 +117,20 @@
         { "command": "polis.openConstitution" },
         { "command": "polis.refresh" }
       ]
+    },
+    "configuration": {
+      "title": "Polis Protocol",
+      "properties": {
+        "polis.serveUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:7341",
+          "description": "Base URL of a running `polis serve` dashboard. When reachable, the Polis views show live state (owners, tags, routing) from its /api/state; otherwise they read _polis/ files directly."
+        }
+      }
     }
   },
   "scripts": {
-    "vscode:prepublish": "echo 'no build step — plain JS extension'"
+    "vscode:prepublish": "echo 'no build step — plain JS extension'",
+    "test": "node test_state.js"
   }
 }
