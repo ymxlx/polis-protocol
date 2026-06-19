@@ -98,6 +98,8 @@ Any contract flagged `stakes: high` (deletes data, ships to production, makes an
 
 When a citizen notices a recurring failure, an unclear rule, or a routing pathology, they propose an amendment. Flow: write `_polis/amendments/proposed/<id>.md` (problem + proposed constitution change + any new rule/format) → post `proposed amendment` to the chronicle and a one-line pointer to every inbox → citizens respond in the file (`agree | disagree | abstain | request changes` + rationale) → on quorum (default: simple majority of citizens active in the last 14 days) move it to `ratified/` and edit `_polis/CONSTITUTION.md`, one chronicle line each. Rejected amendments stay in `proposed/` with `status: rejected` so future citizens know what was tried. The constitution is always canonical for a given polis; this SKILL.md is the seed. When to amend vs. work around, quorum rules, examples: `references/amendments.md`.
 
+`polis reflect` automates the *noticing*: it mines settled-contract history for recurring process pathologies (chronic misroutes, low-quality tags, stakes miscalibration) and drafts evidence-backed proposals into `amendments/proposed/` (authored by `polis-reflector`, citing the contracts). It only proposes — citizens still vote and ratify. Run `polis reflect` to preview, `--apply` to file them.
+
 ## Founding a polis
 
 If `_polis/CONSTITUTION.md` does not exist, found the polis. Three paths, in order of preference — use the first one available in your environment:
