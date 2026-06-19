@@ -24,6 +24,7 @@ commands:
   serve       Local control-plane dashboard — view + open/claim/settle/reserve (http://127.0.0.1:7341)
   mcp         Serve the polis lifecycle as an MCP server (stdio) for any agent
   report      Write a shareable Polis Replay (--format md|html, --redact)
+  reflect     Mine settled history for pathologies; draft evidence-backed amendments (--apply)
   guardrail   Record/list must-pass checks learned from failures (add | list)
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
@@ -259,6 +260,38 @@ def cmd_report(argv):
     from . import report as _report
     path = _report.write_report(root, fmt=a.format, redacted=a.redact, out_path=a.out)
     print(f"wrote {path}")
+    return 0
+
+
+def cmd_reflect(argv):
+    import argparse
+
+    ap = argparse.ArgumentParser(prog="polis reflect")
+    ap.add_argument("--apply", action="store_true",
+                    help="Write proposed amendments to amendments/proposed/ (default: preview only)")
+    ap.add_argument("--min-evidence", type=int, default=None,
+                    help="Settled contracts needed before a pattern counts as recurring (default 3)")
+    ap.add_argument("--polis-root", default=None)
+    a = ap.parse_args(argv)
+    root = _resolve_root(a.polis_root)
+    from . import reflect as _reflect
+    kwargs = {"apply": a.apply}
+    if a.min_evidence is not None:
+        kwargs["min_evidence"] = a.min_evidence
+    results = _reflect.reflect(root, **kwargs)
+    if not results:
+        print("No process pathologies found — nothing to propose.")
+        return 0
+    verb = "Proposed" if a.apply else "Would propose"
+    for r in results:
+        if a.apply and r["already_proposed"]:
+            print(f"  · already on file: {r['amendment_id']} ({r['kind']})")
+            continue
+        mark = "+" if (a.apply and r["written"]) else "?"
+        print(f"  {mark} {verb}: {r['title']}")
+        print(f"      kind={r['kind']}  evidence={', '.join(r['evidence_contracts'])}")
+    if not a.apply:
+        print("\nRe-run with --apply to file these for the citizens to vote on.")
     return 0
 
 
@@ -526,6 +559,8 @@ def main(argv=None):
         return mcp_server.main(rest)
     if cmd == "report":
         return cmd_report(rest)
+    if cmd == "reflect":
+        return cmd_reflect(rest)
     if cmd == "doctor":
         return cmd_doctor(rest)
     if cmd == "verify":
