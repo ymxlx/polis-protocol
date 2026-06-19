@@ -358,11 +358,11 @@ The migration path from `agent-vault` is documented in [`references/troubleshoot
 
 ## Status
 
-**v2.0.0a2 (alpha) — [on PyPI](https://pypi.org/project/polis-protocol/) · [website](https://polis-protocol.vercel.app).**
+**v2.0 (stable) — [on PyPI](https://pypi.org/project/polis-protocol/) · [MCP registry](https://registry.modelcontextprotocol.io) · [website](https://polis-protocol.vercel.app).**
 The protocol stays intentionally minimal — every file is markdown in your repo, the only dependency
 is PyYAML, and there is no required server or database. The `polis` CLI covers
-`init · route · reconcile · status · contract · reserve/release · guardrail · bench · serve · mcp · report · doctor · verify · migrate`,
-backed by 13 test suites in CI across Python 3.10–3.13. Schema v2 (`_polis/polis.yml`) migrates
+`init · route · reconcile · status · contract · reserve/release · guardrail · bench · serve · mcp · report · reflect · doctor · verify · migrate`,
+backed by the full test suite in CI across Python 3.10–3.13. Schema v2 (`_polis/polis.yml`) migrates
 reversibly via `polis migrate --plan|--apply|--rollback`. Listing `polis mcp` in the official MCP
 registry is a one-time manual step — see [`docs/publishing-mcp-registry.md`](docs/publishing-mcp-registry.md).
 Forks, issues, and amendments welcome.

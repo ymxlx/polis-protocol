@@ -25,11 +25,16 @@ export TWINE_USERNAME=__token__ TWINE_PASSWORD='<a fresh project-scoped PyPI tok
 uvx twine upload dist/*
 unset TWINE_PASSWORD
 # verify the alias + marker shipped
-uvx --refresh --from polis-protocol==2.0.0a2 polis-protocol version
+uvx --refresh --from polis-protocol==2.0.1 polis-protocol version
 ```
 
-If you bump the version again later, keep `pyproject.toml`, `polis/__init__.py`, and
-**both** `version` fields in `server.json` in lockstep.
+If you bump the version again later, edit `pyproject.toml` and **both** `version` fields in
+`server.json` in lockstep. `polis/__init__.py` reads `__version__` from the installed
+distribution metadata (`importlib.metadata`), so it tracks `pyproject.toml` automatically —
+only update its source-tree fallback constant when you start the *next* version's work.
+Also: `server.json` `description` must be **≤ 100 chars** (the registry returns 422 otherwise),
+and the Registry JWT expires quickly — run `mcp-publisher login github` immediately before
+`mcp-publisher publish`.
 
 ## 1. Install the mcp-publisher CLI
 
