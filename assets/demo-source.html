@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<!--
+  Polis Protocol — demo GIF source (1000×600), deterministic per-frame renderer.
+  Each ?f=N renders the exact animation state at frame N (no timers → screenshot-safe).
+  Capture frames with chrome-headless-shell + assemble with ffmpeg (see scripts/build-demo-gif.sh).
+  Content is the REAL CLI output: `polis bench --mode learning` (65%→7%, −89%), the
+  deterministic `polis reserve` collision, and the `polis route --explain` lesson-aware pick.
+-->
+<style>
+  :root{
+    --bg:#0A0B0D; --panel:#0E0F13; --bar:#15171c; --ink:#E7E8E2; --mut:#8C8E86; --faint:#5d5f58;
+    --gold:#E8B24C; --cyan:#46cfdb; --alert:#F2552C; --ok:#5fd08a; --hair:rgba(231,232,226,.12);
+    --mono:ui-monospace,'SF Mono',Menlo,Monaco,'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1000px;height:600px;background:#000;overflow:hidden;font-family:var(--mono)}
+  .term{position:relative;width:1000px;height:600px;background:
+      radial-gradient(120% 90% at 85% -10%,rgba(70,207,219,.05),transparent 55%),
+      radial-gradient(120% 120% at -10% 115%,rgba(232,178,76,.05),transparent 45%),var(--bg);
+      display:flex;flex-direction:column}
+  .term::after{content:"";position:absolute;inset:0;z-index:9;pointer-events:none;opacity:.32;
+      background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.18) 2px 3px)}
+  /* title bar */
+  .bar{height:44px;flex:0 0 44px;display:flex;align-items:center;gap:9px;padding:0 18px;
+      background:var(--bar);border-bottom:1px solid var(--hair)}
+  .tl{width:11px;height:11px;border-radius:50%}
+  .tl.r{background:#F2552C}.tl.y{background:#E8B24C}.tl.g{background:#5fd08a}
+  .bar .ti{margin-left:10px;color:var(--mut);font-size:12.5px;letter-spacing:.16em}
+  .bar .ti b{color:var(--ink);font-weight:700}
+  .bar .rt{margin-left:auto;color:var(--faint);font-size:11.5px;letter-spacing:.16em}
+  /* screen */
+  .scr{flex:1;padding:20px 26px;font-size:15px;line-height:1.62;color:var(--ink);
+      white-space:pre;overflow:hidden}
+  .ln{min-height:1.62em}
+  .p{color:var(--gold);font-weight:700}
+  .cy{color:var(--cyan)} .mut{color:var(--mut)} .gold{color:var(--gold)}
+  .ok{color:var(--ok)} .no{color:var(--alert);font-weight:700} .ink{color:var(--ink)}
+  .caret{display:inline-block;width:9px;height:17px;background:var(--gold);
+      vertical-align:-3px;margin-left:1px}
+  /* end-card flourish */
+  .big{font-size:25px;line-height:1.3;color:var(--ink);font-weight:700;letter-spacing:-.01em;white-space:normal}
+  .big .dim{color:var(--mut)}
+  .cmdbox{display:inline-block;margin-top:4px;background:#0c0e12;border:1px solid var(--hair);
+      border-radius:5px;padding:8px 16px;font-size:18px}
+</style>
+</head>
+<body>
+<div class="term">
+  <div class="bar">
+    <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
+    <span class="ti"><b>polis</b> &nbsp;—&nbsp; control plane for coding agents</span>
+    <span class="rt">LOCAL-FIRST · GIT-NATIVE · MIT</span>
+  </div>
+  <div class="scr" id="scr"></div>
+</div>
+<script>
+(function(){
+  var F = parseInt(new URLSearchParams(location.search).get('f')||'0',10);
+  var CPS=2, LINE_F=2, ENTER_F=2, CLR=2, GAP=1;
+  var H={s:8,m:14,l:22};
+  // event stream — the real transcript, scene by scene (clear between scenes)
+  var EV=[
+    {k:'clr'},
+    {k:'cmd', s:'polis bench --mode learning'},
+    {k:'gap'},
+    {k:'out', s:'Cumulative repeat-error rate  <span class="mut">(left = early → right = late)</span>:'},
+    {k:'out', s:'  memoryless agent / swarm : <span class="mut">▁▄▆▆▆▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇█▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇</span>  → <span class="ink">65%</span>'},
+    {k:'out', s:'  Polis (accumulates)      : <span class="cy">▁▇█▇▇▆▆▅▅▄▄▅▄▄▄▄▄▄▃▃▃▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂</span>  → <span class="cy">7%</span>'},
+    {k:'gap'},
+    {k:'out', s:'  <span class="cy">↳ repeat-error rate cut 89% below a memoryless setup —</span>'},
+    {k:'out', s:'    <span class="mut">each failure class recurs at most once, then becomes a standing check.</span>'},
+    {k:'hold', n:H.l},
+
+    {k:'clr'},
+    {k:'cmd', s:'polis reserve src/auth/login.py --as claude'},
+    {k:'out', s:'<span class="ok">Reserved 1 path(s) for claude.</span>'},
+    {k:'hold', n:H.s},
+    {k:'gap'},
+    {k:'cmd', s:'polis reserve src/auth/login.py --as codex'},
+    {k:'out', s:'<span class="no">Reservation REJECTED</span> — these paths are held by other citizens:'},
+    {k:'out', s:'  src/auth/login.py  <span class="gold">← held by claude</span> (as src/auth/login.py)'},
+    {k:'hold', n:H.l},
+
+    {k:'clr'},
+    {k:'cmd', s:'polis route --explain   <span class="mut"># who should translate to Spanish?</span>'},
+    {k:'gap'},
+    {k:'out', s:'  <span class="cy">gemini-translator</span>   total=<span class="cy">0.688</span>   hist=0.25  self=1.00  lessons=<span class="cy">+0.10</span>'},
+    {k:'out', s:'    <span class="gold">↳ lessons applied: 2026-04-18-madrij-not-lider</span>'},
+    {k:'out', s:'  claude-research     total=0.453   hist=0.15  self=0.60  lessons=+0.00'},
+    {k:'out', s:'  codex-frontend      total=0.290   hist=0.00  self=0.20  lessons=+0.00'},
+    {k:'gap'},
+    {k:'out', s:'  Recommendation: <span class="cy">gemini-translator</span>   <span class="mut">← won on track record, not self-rating</span>'},
+    {k:'hold', n:H.l},
+
+    {k:'clr'},
+    {k:'gap'},{k:'gap'},
+    {k:'out', s:'<span class="big">We benchmarked our own tool —<br><span class="dim">and published where it loses.</span></span>'},
+    {k:'gap'},{k:'gap'},
+    {k:'out', s:'<span class="cmdbox"><span class="p">$</span> uvx polis-protocol init</span>'},
+    {k:'gap'},
+    {k:'out', s:'<span class="gold">★</span>  github.com/yehudalevy-collab/polis-protocol   <span class="mut">·</span>   polis-protocol.vercel.app'},
+    {k:'hold', n:H.l}
+  ];
+
+  // walk the stream up to frame F, build visible buffer
+  function build(F){
+    var f=0, lines=[], i, e;
+    for(i=0;i<EV.length;i++){
+      e=EV[i];
+      if(F < f) break;
+      if(e.k==='clr'){ lines=[]; f+=CLR; }
+      else if(e.k==='gap'){ lines.push(''); f+=GAP; }
+      else if(e.k==='hold'){ f+=e.n; }
+      else if(e.k==='out'){ lines.push(e.s); f+=LINE_F; }
+      else if(e.k==='cmd'){
+        var need=Math.ceil(e.s.replace(/<[^>]*>/g,'').length/CPS);
+        if(F < f+need){               // mid-typing
+          var typed=(F-f)*CPS;
+          lines.push('<span class="p">$</span> '+typeSlice(e.s,typed)+'<span class="caret"></span>');
+          f=1e9; break;
+        } else {
+          lines.push('<span class="p">$</span> '+e.s);
+          f+=need+ENTER_F;
+        }
+      }
+    }
+    return lines;
+  }
+  // reveal first `n` visible characters of a string that may contain HTML tags
+  function typeSlice(s,n){
+    var out='',count=0,inTag=false;
+    for(var j=0;j<s.length;j++){
+      var ch=s[j];
+      if(ch==='<') inTag=true;
+      out+=ch;
+      if(!inTag && ch!=='>'){ count++; if(count>=n){ /* keep closing any open tag */ } }
+      if(ch==='>') inTag=false;
+      if(!inTag && count>=n) break;
+    }
+    return out;
+  }
+  function total(){
+    var f=0,i,e;
+    for(i=0;i<EV.length;i++){ e=EV[i];
+      if(e.k==='clr')f+=CLR; else if(e.k==='gap')f+=GAP; else if(e.k==='hold')f+=e.n;
+      else if(e.k==='out')f+=LINE_F;
+      else if(e.k==='cmd')f+=Math.ceil(e.s.replace(/<[^>]*>/g,'').length/CPS)+ENTER_F;
+    }
+    return f;
+  }
+  document.title='T='+total();
+  var lines=build(F);
+  var html='';
+  for(var k=0;k<lines.length;k++){ html+='<div class="ln">'+(lines[k]||'&nbsp;')+'</div>'; }
+  document.getElementById('scr').innerHTML=html;
+})();
+</script>
+</body>
+</html>
