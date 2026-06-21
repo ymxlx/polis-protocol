@@ -19,7 +19,21 @@
 **🌐 Website → [polis-protocol.vercel.app](https://polis-protocol.vercel.app)** &nbsp;·&nbsp; [Install](#quick-start) &nbsp;·&nbsp; [Proof](#proof-measured-honestly) &nbsp;·&nbsp; [Plug into your agent (MCP)](#plug-it-into-your-agent-over-mcp)
 
 <p align="center">
-  <img src="assets/demo.gif" alt="30 second Polis Protocol terminal demo" width="100%" />
+  <img src="assets/demo.gif" alt="Polis in 25 seconds — the repeat-error rate collapsing 65% to 7%, then a file collision rejected by name" width="100%" />
+</p>
+
+<p align="center">
+  <strong>Repeat errors: 65% → 7% (−89%)</strong> &nbsp;·&nbsp; <strong>Collisions: 0, deterministic</strong> &nbsp;·&nbsp; reproduce in 5s: <code>polis bench --mode learning</code><br/>
+  <sub>Yes — we benchmarked our own tool and <a href="#proof-measured-honestly">published where it loses</a>. That candor is the whole pitch.</sub>
+</p>
+
+```bash
+uvx polis-protocol init      # one command · no server · no database · just markdown in your repo
+```
+
+<p align="center">
+  Shared by <strong>Claude · Codex · Gemini · Cursor</strong>, all reading one <code>_polis/</code> folder. MIT.<br/>
+  ⭐ <strong>If the loop below clicks, a star helps other multi-agent builders find this.</strong>
 </p>
 
 ---
@@ -226,8 +240,8 @@ same shared application layer the CLI and dashboard use. Nothing ever hand-edits
 
 `polis bench` ships in the box — we benchmarked our own claims instead of asserting them:
 
-- **Repeat errors: −88%.** With lessons and guardrails auto-injected into matching future
-  tasks, the repeat-error rate falls from ~65% (a memoryless agent or unmanaged swarm) to ~8%
+- **Repeat errors: −89%.** With lessons and guardrails auto-injected into matching future
+  tasks, the repeat-error rate falls from ~65% (a memoryless agent or unmanaged swarm) to ~7%
   — each failure class recurs at most once, then becomes a standing check. Reproduce it:
   `polis bench --mode learning`.
 - **Collisions: zero, deterministically.** `polis reserve` rejects overlapping file claims

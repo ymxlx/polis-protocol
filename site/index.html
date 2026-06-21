@@ -7,9 +7,12 @@
 <meta name="description" content="Run Claude Code, Codex, Gemini and Cursor as one team — in your repo, in git, across every vendor. Every task has an owner, every handoff has evidence, and the team measurably stops repeating its own mistakes." />
 <meta property="og:title" content="POLIS — the control plane for coding agents" />
 <meta property="og:description" content="Every task has an owner, every handoff has evidence, and the team measurably stops repeating its own mistakes. Local-first, git-native, MIT." />
-<meta property="og:image" content="https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/assets/banner.png" />
+<meta property="og:image" content="https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/assets/social-card.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/assets/social-card.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
@@ -236,7 +239,7 @@
         <div class="cmdrow"><span class="p">$</span><code>uvx polis-protocol init</code><button class="copy" data-copy="uvx polis-protocol init">Copy</button></div>
       </div>
       <div class="panel par-a" data-draw>
-        <div class="panel-h"><span><span class="dot">●</span>&nbsp; TELEMETRY / REPEAT-ERROR RATE</span><span>−88%</span></div>
+        <div class="panel-h"><span><span class="dot">●</span>&nbsp; TELEMETRY / REPEAT-ERROR RATE</span><span>−89%</span></div>
         <div class="panel-b">
           <svg viewBox="0 0 600 290" width="100%" role="img" aria-label="Polis drives the repeat-error rate down as its lesson corpus grows; a memoryless setup stays flat at 65 percent">
             <g stroke="rgba(231,232,226,.10)" stroke-width="1"><line x1="42" y1="34" x2="42" y2="262"/><line x1="42" y1="262" x2="585" y2="262"/><line x1="42" y1="148" x2="585" y2="148" stroke-dasharray="2 8"/><line x1="200" y1="34" x2="200" y2="262" stroke-dasharray="2 8"/><line x1="380" y1="34" x2="380" y2="262" stroke-dasharray="2 8"/></g>
@@ -244,7 +247,7 @@
             <path class="ln" pathLength="1" d="M42,262 C72,148 112,108 162,102 C262,94 422,97 585,96" fill="none" stroke="#6f716a" stroke-width="2"/>
             <path class="ln ln2" pathLength="1" d="M42,262 C60,148 80,116 98,131 C152,172 242,202 342,230 C432,254 512,260 585,262" fill="none" stroke="#46cfdb" stroke-width="2.4"/>
             <rect x="582" y="93" width="6" height="6" fill="#6f716a"/><rect x="582" y="259" width="6" height="6" fill="#46cfdb"/>
-            <text x="468" y="88" fill="#9a9c92" font-size="11" font-family="JetBrains Mono">MEMORYLESS 65%</text><text x="498" y="254" fill="#46cfdb" font-size="11" font-family="JetBrains Mono">POLIS 8%</text>
+            <text x="468" y="88" fill="#9a9c92" font-size="11" font-family="JetBrains Mono">MEMORYLESS 65%</text><text x="498" y="254" fill="#46cfdb" font-size="11" font-family="JetBrains Mono">POLIS 7%</text>
           </svg>
           <div class="legend"><span><i class="sw" style="background:#6f716a"></i>SINGLE AGENT / UNMANAGED SWARM</span><span><i class="sw" style="background:#46cfdb"></i>POLIS · ACCUMULATES + RE-INJECTS</span></div>
         </div>
@@ -296,9 +299,9 @@
     </div>
     <div class="proof reveal">
       <div>
-        <output class="readout cy">−88%</output>
-        <div class="runit">Repeat errors · 65% → 8%</div>
-        <p class="cp" style="margin-top:18px">Polis records each failure as a lesson or guardrail and re-injects it into matching future tasks. The repeat-error rate falls 88% below a memoryless setup — each failure class recurs at most once. A lone agent can't draw that curve; it never accumulates.</p>
+        <output class="readout cy">−89%</output>
+        <div class="runit">Repeat errors · 65% → 7%</div>
+        <p class="cp" style="margin-top:18px">Polis records each failure as a lesson or guardrail and re-injects it into matching future tasks. The repeat-error rate falls 89% below a memoryless setup — each failure class recurs at most once. A lone agent can't draw that curve; it never accumulates.</p>
         <div class="term"><button class="copy" data-copy="polis bench --mode learning">Copy</button><span class="cm"># reproduce it yourself</span><br><span class="p">$</span> polis bench --mode learning</div>
       </div>
       <div>
