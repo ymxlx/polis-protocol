@@ -70,6 +70,46 @@ def run_doctor(polis_root) -> dict:
             except (TypeError, ValueError):
                 errors.append(f"lesson {lesson['lesson_id']}: non-numeric routing_effect delta")
 
+    # Amendments check.
+    from datetime import datetime
+    from .amendments import list_amendments
+    try:
+        all_amends = list_amendments(root)
+        for am in all_amends:
+            aid = am.get("amendment_id")
+            if not aid:
+                errors.append("found amendment with missing/null 'amendment_id'")
+                continue
+            status = am.get("status")
+            if status not in ("proposed", "ratified", "rejected", "expired"):
+                errors.append(f"amendment {aid}: invalid status '{status}'")
+            quorum = am.get("quorum_required")
+            if quorum is not None:
+                try:
+                    q_int = int(quorum)
+                    if q_int <= 0:
+                        errors.append(f"amendment {aid}: quorum_required must be a positive integer, got {quorum}")
+                except (TypeError, ValueError):
+                    errors.append(f"amendment {aid}: non-integer quorum_required '{quorum}'")
+            votes = am.get("votes") or {}
+            for cat, vlist in votes.items():
+                if cat not in ("agree", "disagree", "abstain", "request_changes"):
+                    warnings.append(f"amendment {aid}: unknown vote category '{cat}'")
+                elif not isinstance(vlist, list):
+                    errors.append(f"amendment {aid}: vote category '{cat}' must be a list")
+                else:
+                    for voter in vlist:
+                        if known and voter not in known:
+                            warnings.append(f"amendment {aid}: vote cast by unknown citizen '{voter}'")
+            exp = am.get("expires_at")
+            if exp:
+                try:
+                    datetime.strptime(str(exp).strip(), "%Y-%m-%d")
+                except ValueError:
+                    errors.append(f"amendment {aid}: invalid expires_at format '{exp}', expected YYYY-MM-DD")
+    except Exception as e:
+        errors.append(f"failed to load/check amendments: {e}")
+
     open_dir = root / "contracts" / "open"
     n_open = len(list(open_dir.glob("*.md"))) if open_dir.exists() else 0
     info.append(f"{len(citizens)} citizens, {n_open} open contracts")
