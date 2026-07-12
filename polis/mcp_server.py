@@ -121,6 +121,19 @@ TOOLS = [
            "tags": _strlist("Capability tags it applies to (empty = applies to any)."),
            "source_contract": {"type": "string", "description": "Contract id this failure came from."}},
           required=["text"]),
+    _tool("polis_list_amendments",
+          "List proposed and ratified amendments."),
+    _tool("polis_vote_amendment",
+          "Vote on a proposed amendment.",
+          {"amendment_id": {"type": "string", "description": "The amendment ID to vote on (e.g., YYYY-MM-DD-slug)."},
+           "citizen": {"type": "string", "description": "Citizen casting the vote."},
+           "vote": {"type": "string", "enum": ["agree", "disagree", "abstain", "request_changes"],
+                    "description": "Vote option."},
+           "rationale": {"type": "string", "description": "Optional rationale explaining the vote."}},
+          required=["amendment_id", "citizen", "vote"]),
+    _tool("polis_tally_amendments",
+          "Tally proposed amendments and update their status (ratified, rejected, expired).",
+          {"citizen": {"type": "string", "description": "Optional citizen performing the tally (defaults to 'polis-tally')."}}),
 ]
 
 RESOURCES = [
@@ -224,6 +237,22 @@ class PolisMCPServer:
         return guardrails.add_guardrail(self.root, args["text"], args.get("tags") or [],
                                         source_contract=args.get("source_contract"))
 
+    def _tool_list_amendments(self, args):
+        from . import amendments
+        return {"amendments": amendments.list_amendments(self.root)}
+
+    def _tool_vote_amendment(self, args):
+        from . import amendments
+        return amendments.vote_amendment(
+            self.root, args["amendment_id"], args["citizen"], args["vote"],
+            rationale=args.get("rationale"))
+
+    def _tool_tally_amendments(self, args):
+        from . import amendments
+        citizen = args.get("citizen") or "polis-tally"
+        results = amendments.tally_amendments(self.root, proposer_or_default_citizen=citizen)
+        return {"ok": True, "results": results}
+
     _TOOL_HANDLERS = {
         "polis_status": _tool_status,
         "polis_list_contracts": _tool_list_contracts,
@@ -237,6 +266,9 @@ class PolisMCPServer:
         "polis_release": _tool_release,
         "polis_reservations": _tool_reservations,
         "polis_add_guardrail": _tool_add_guardrail,
+        "polis_list_amendments": _tool_list_amendments,
+        "polis_vote_amendment": _tool_vote_amendment,
+        "polis_tally_amendments": _tool_tally_amendments,
     }
 
     # ---- resources ----

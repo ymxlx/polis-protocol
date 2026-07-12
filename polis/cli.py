@@ -25,6 +25,7 @@ commands:
   mcp         Serve the polis lifecycle as an MCP server (stdio) for any agent
   report      Write a shareable Polis Replay (--format md|html, --redact)
   reflect     Mine settled history for pathologies; draft evidence-backed amendments (--apply)
+  amendment   Manage constitution amendments: list | vote | tally
   guardrail   Record/list must-pass checks learned from failures (add | list)
   status      Summarize the polis: citizens, open/settled contracts, routing
   doctor      Validate the polis (schema, cards, contracts, lessons)
@@ -515,6 +516,67 @@ def cmd_reservations(argv):
     return 0
 
 
+def cmd_amendment(argv):
+    import argparse
+
+    sub = argv[0] if argv else ""
+    rest = argv[1:]
+    from . import amendments
+
+    if sub == "list":
+        ap = argparse.ArgumentParser(prog="polis amendment list")
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        rows = amendments.list_amendments(root)
+        if not rows:
+            print("No proposed or ratified amendments.")
+            return 0
+        for r in rows:
+            votes = r.get("votes", {})
+            agrees = len(votes.get("agree", []))
+            disagrees = len(votes.get("disagree", []))
+            req_changes = len(votes.get("request_changes", []))
+            print(f"  {r['amendment_id']:32s} [{r['status']:9s}] votes: agree={agrees} disagree={disagrees} request_changes={req_changes}  {r['title']}")
+        return 0
+
+    if sub == "vote":
+        ap = argparse.ArgumentParser(prog="polis amendment vote")
+        ap.add_argument("amendment_id")
+        ap.add_argument("--as", dest="citizen", required=True, help="Citizen casting the vote")
+        ap.add_argument("--vote", required=True, choices=["agree", "disagree", "abstain", "request_changes"])
+        ap.add_argument("--rationale", default=None, help="Explanation for the vote")
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        try:
+            res = amendments.vote_amendment(root, a.amendment_id, a.citizen, a.vote, rationale=a.rationale)
+            print(f"Vote cast successfully: {a.citizen} voted {a.vote} on {a.amendment_id}.")
+            return 0
+        except ValueError as e:
+            print(f"Vote failed: {e}")
+            return 1
+
+    if sub == "tally":
+        ap = argparse.ArgumentParser(prog="polis amendment tally")
+        ap.add_argument("--as", dest="citizen", default="polis-tally", help="Author of the chronicle entry")
+        ap.add_argument("--polis-root", default=None)
+        a = ap.parse_args(rest)
+        root = _resolve_root(a.polis_root)
+        results = amendments.tally_amendments(root, proposer_or_default_citizen=a.citizen)
+        if not results:
+            print("No amendments tallied.")
+            return 0
+        for r in results:
+            print(f"  [{r['action'].upper()}] {r['amendment_id']}: {r['detail']}")
+            if r['action'] == "ratified":
+                print(f"      [IMPORTANT] Please manually incorporate the amendment into CONSTITUTION.md!")
+        return 0
+
+    print("usage: polis amendment <list|vote|tally> [...]")
+    return 2
+
+
 def _delegate(module_name, argv, prepend=None):
     """Run a legacy module's main() by reconstructing sys.argv."""
     from . import routing, initializer  # noqa: F401
@@ -561,6 +623,8 @@ def main(argv=None):
         return cmd_report(rest)
     if cmd == "reflect":
         return cmd_reflect(rest)
+    if cmd == "amendment":
+        return cmd_amendment(rest)
     if cmd == "doctor":
         return cmd_doctor(rest)
     if cmd == "verify":
