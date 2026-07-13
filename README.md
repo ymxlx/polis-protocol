@@ -19,12 +19,12 @@
 **🌐 Website → [polis-protocol.ymlsora.chatgpt.site](https://polis-protocol.ymlsora.chatgpt.site)** &nbsp;·&nbsp; [Install](#quick-start) &nbsp;·&nbsp; [Proof](#proof-measured-honestly) &nbsp;·&nbsp; [Plug into your agent (MCP)](#plug-it-into-your-agent-over-mcp)
 
 <p align="center">
-  <img src="assets/demo.gif" alt="Polis in 25 seconds — the repeat-error rate collapsing 65% to 7%, then a file collision rejected by name" width="100%" />
+  <img src="assets/demo.gif" alt="Polis benchmark demo — a synthetic repeat-error simulation followed by an advisory reservation conflict" width="100%" />
 </p>
 
 <p align="center">
-  <strong>Repeat errors: 65% → 7% (−89%)</strong> &nbsp;·&nbsp; <strong>Collisions: 0, deterministic</strong> &nbsp;·&nbsp; reproduce in 5s: <code>polis bench --mode learning</code><br/>
-  <sub>Yes — we benchmarked our own tool and <a href="#proof-measured-honestly">published where it loses</a>. That candor is the whole pitch.</sub>
+  <strong>Synthetic simulation: repeat errors 65% → 7%</strong> &nbsp;·&nbsp; <strong>Advisory overlap conflicts detected</strong> &nbsp;·&nbsp; reproduce in 5s: <code>polis bench --mode learning</code><br/>
+  <sub>Modeled run with synthetic tasks and seed 0 — <a href="#proof-measured-honestly">assumptions and limitations</a> are published below.</sub>
 </p>
 
 ```bash
@@ -71,12 +71,12 @@ Recommendation: gemini-translator-pesaj   ← won on history + an applied lesson
 
 There is now a wave of git-and-markdown task boards for AI agents — claim a task, do it, mark it done. They're good, and Polis can write to them. But a board is **passive**: it records what happened and never gets smarter. The protocol is frozen the day it ships.
 
-Polis is the only one of these that is **active** — the coordination layer itself learns and governs:
+Polis adds an **active coordination layer** to the shared record:
 
 1. **Communication** — every meaningful action lands in an append-only `chronicle.md`. *(Every board does this.)*
 2. **Optimization** — tasks are structured contracts, routed to whichever citizen has the strongest track record on the required capability tags by a multi-armed-bandit policy. *(A board can't; it has no notion of who's best.)*
-3. **Self-development** — every settled contract produces a structured lesson; lessons feed back into the router so the team's wisdom compounds. **The team measurably gets better over time.**
-4. **Constitutional evolution** — when a rule stops working, citizens propose, vote on, and ratify amendments to the protocol itself. *No other coordination tool ships this — it otherwise exists only in research papers.*
+3. **Self-development** — settled contracts can produce structured lessons; lessons feed back into the router and can help reduce repeated failures when the records are maintained consistently.
+4. **Constitutional evolution** — when a rule stops working, citizens can propose, vote on, and ratify amendments to the protocol itself.
 
 > **A board is something you fill in. Polis is a team that develops.** It learns who's best, and it can rewrite its own rules.
 

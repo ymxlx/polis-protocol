@@ -28,7 +28,8 @@ PROTOCOL_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
 
 INSTRUCTIONS = (
     "Polis is the local-first control plane for coding agents: tasks are "
-    "contracts with owners and evidence, file reservations prevent collisions, "
+    "claimed contracts record owners and can record evidence, advisory file "
+    "reservations flag overlapping claims, "
     "and settled work produces lessons/guardrails that improve future routing. "
     "Typical flow: polis_status -> polis_open_contract -> polis_route -> "
     "polis_claim_contract -> (work, with polis_context + polis_reserve) -> "
