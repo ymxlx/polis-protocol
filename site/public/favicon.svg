@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#0A0B0D"/>
+  <g fill="none" stroke="#E8B24C" stroke-width="3" stroke-linejoin="round">
+    <polygon points="32,9 52,20.5 52,43.5 32,55 12,43.5 12,20.5"/>
+    <path d="M32 32V9M32 32l20-11.5M32 32l20 11.5M32 32v23M32 32L12 43.5M32 32L12 20.5"/>
+  </g>
+  <g fill="#E8B24C">
+    <circle cx="32" cy="9" r="3.5"/><circle cx="52" cy="20.5" r="3.5"/>
+    <circle cx="52" cy="43.5" r="3.5"/><circle cx="32" cy="55" r="3.5"/>
+    <circle cx="12" cy="43.5" r="3.5"/><circle cx="12" cy="20.5" r="3.5"/>
+  </g>
+  <circle cx="32" cy="32" r="5" fill="#46CFDB"/>
+</svg>

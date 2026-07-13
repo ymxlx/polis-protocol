@@ -5,9 +5,9 @@
 
 # Polis Protocol
 
-> The local-first control plane for coding agents. Run Claude, Codex, Gemini, and Cursor against one repo — every task gets an owner, every handoff carries evidence, and the team measurably stops repeating its own mistakes. Plain markdown, in git, across every vendor.
+> The local-first control plane for coding agents. Run Claude, Codex, Gemini, and Cursor against one repo — each claimed contract records an owner, agents can record evidence, and shared lessons help reduce repeated failures. Plain markdown, in git, across every vendor.
 
-[![Website](https://img.shields.io/badge/website-polis--protocol.vercel.app-E8B24C)](https://polis-protocol.vercel.app)
+[![Website](https://img.shields.io/badge/website-polis--protocol.ymlsora.chatgpt.site-E8B24C)](https://polis-protocol.ymlsora.chatgpt.site)
 [![tests](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml/badge.svg)](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/polis-protocol?label=pypi&color=2b7)](https://pypi.org/project/polis-protocol/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -16,7 +16,7 @@
 [![Vendor-agnostic](https://img.shields.io/badge/vendor-agnostic-success)]()
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**🌐 Website → [polis-protocol.vercel.app](https://polis-protocol.vercel.app)** &nbsp;·&nbsp; [Install](#quick-start) &nbsp;·&nbsp; [Proof](#proof-measured-honestly) &nbsp;·&nbsp; [Plug into your agent (MCP)](#plug-it-into-your-agent-over-mcp)
+**🌐 Website → [polis-protocol.ymlsora.chatgpt.site](https://polis-protocol.ymlsora.chatgpt.site)** &nbsp;·&nbsp; [Install](#quick-start) &nbsp;·&nbsp; [Proof](#proof-measured-honestly) &nbsp;·&nbsp; [Plug into your agent (MCP)](#plug-it-into-your-agent-over-mcp)
 
 <p align="center">
   <img src="assets/demo.gif" alt="Polis in 25 seconds — the repeat-error rate collapsing 65% to 7%, then a file collision rejected by name" width="100%" />
@@ -209,9 +209,13 @@ inherit as must-pass acceptance criteria.
 
 ```bash
 polis reserve src/auth --as claude-research-yourproject --note "refactoring login"
-# another agent trying to grab src/auth/login.py is now rejected, with the holder named
+# another cooperating Polis client receives a conflict warning with the holder named
 polis release src/auth --as claude-research-yourproject
 ```
+
+Reservations are advisory coordination recorded in shared state. They are not
+filesystem locks, a security boundary, or a guarantee against races from tools
+that do not participate in Polis.
 
 ### Plug it into your agent over MCP
 
@@ -244,8 +248,9 @@ same shared application layer the CLI and dashboard use. Nothing ever hand-edits
   tasks, the repeat-error rate falls from ~65% (a memoryless agent or unmanaged swarm) to ~7%
   — each failure class recurs at most once, then becomes a standing check. Reproduce it:
   `polis bench --mode learning`.
-- **Collisions: zero, deterministically.** `polis reserve` rejects overlapping file claims
-  outright, naming the holder. No model judgement, no race.
+- **Deterministic advisory conflict detection.** Within the benchmark, `polis reserve`
+  rejects overlapping claims and names the holder when every participant uses the same
+  shared state. Reservations are not filesystem locks or race prevention.
 - **And the part most projects won't tell you:** learned routing beats no-skill baselines
   (random, round-robin) and recovers ~35–55% of an oracle's quality gain from outcomes alone —
   but *accurate* static self-ratings stay competitive on quality, and the bench report says so
@@ -372,7 +377,7 @@ The migration path from `agent-vault` is documented in [`references/troubleshoot
 
 ## Status
 
-**v2.0 (stable) — [on PyPI](https://pypi.org/project/polis-protocol/) · [MCP registry](https://registry.modelcontextprotocol.io) · [website](https://polis-protocol.vercel.app).**
+**v2.0 (stable) — [on PyPI](https://pypi.org/project/polis-protocol/) · [MCP registry](https://registry.modelcontextprotocol.io) · [website](https://polis-protocol.ymlsora.chatgpt.site).**
 The protocol stays intentionally minimal — every file is markdown in your repo, the only dependency
 is PyYAML, and there is no required server or database. The `polis` CLI covers
 `init · route · reconcile · status · contract · reserve/release · guardrail · bench · serve · mcp · report · reflect · doctor · verify · migrate`,

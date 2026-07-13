@@ -23,7 +23,7 @@ classifiers = [
 dependencies = ["pyyaml>=6"]
 
 [project.urls]
-Homepage = "https://polis-protocol.vercel.app"
+Homepage = "https://polis-protocol.ymlsora.chatgpt.site"
 Repository = "https://github.com/yehudalevy-collab/polis-protocol"
 Documentation = "https://github.com/yehudalevy-collab/polis-protocol#readme"
 Issues = "https://github.com/yehudalevy-collab/polis-protocol/issues"

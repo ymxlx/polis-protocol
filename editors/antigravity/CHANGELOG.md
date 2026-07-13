@@ -8,7 +8,7 @@
 
 ## 0.2.1
 
-- Listing now links to the project website ([polis-protocol.vercel.app](https://polis-protocol.vercel.app)) as the marketplace homepage.
+- Listing now links to the project website ([polis-protocol.ymlsora.chatgpt.site](https://polis-protocol.ymlsora.chatgpt.site)) as the marketplace homepage.
 
 ## 0.2.0
 
