@@ -223,7 +223,7 @@ Citizens can always override a recommendation by claiming a contract themselves 
 
 The full math is in the polis-protocol skill's `references/routing.md`. The short version is enough for most cases: pick the citizen with the best track record on the required tags, sometimes pick someone else to keep learning.
 
-When a contract settles, `routing_stats.yml` updates with the new data point. This is what makes the team get better over time.
+When a contract settles, `routing_stats.yml` updates with the new data point. That evidence can improve future recommendations as the record grows.
 
 ## Chavruta review for high-stakes contracts
 

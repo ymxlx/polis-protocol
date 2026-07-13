@@ -315,7 +315,7 @@ The default router is a multi-armed bandit:
 - **Explore** (15%): route to a non-top citizen, weighted by score, to keep the policy honest about whether the current leader is still actually best.
 - **Cold start**: when no history exists for a tag, self-ratings dominate. Self-ratings get displaced within a handful of contracts per tag.
 
-When a contract settles, `routing_stats.yml` updates with the new quality score and minutes. That update is what makes the team get better over time. The full math is in [`references/routing.md`](references/routing.md).
+When a contract settles, `routing_stats.yml` updates with the new quality score and minutes. That evidence can improve future recommendations as the record grows. The full math is in [`references/routing.md`](references/routing.md).
 
 You can run the router as:
 
@@ -368,7 +368,7 @@ Cross-vendor routing is where this protocol earns its keep. A Spanish translatio
 Pick **Polis Protocol** when:
 
 - You have agents from multiple vendors and routing matters.
-- You want the team to measurably get better over time.
+- You want recorded outcomes and lessons to inform future routing.
 - You want a way to amend the protocol itself when reality demands it.
 
 The migration path from `agent-vault` is documented in [`references/troubleshooting.md`](references/troubleshooting.md).
