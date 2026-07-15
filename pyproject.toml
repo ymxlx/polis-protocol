@@ -24,9 +24,9 @@ dependencies = ["pyyaml>=6"]
 
 [project.urls]
 Homepage = "https://polis-protocol.ymlsora.chatgpt.site"
-Repository = "https://github.com/yehudalevy-collab/polis-protocol"
-Documentation = "https://github.com/yehudalevy-collab/polis-protocol#readme"
-Issues = "https://github.com/yehudalevy-collab/polis-protocol/issues"
+Repository = "https://github.com/ymxlx/polis-protocol"
+Documentation = "https://github.com/ymxlx/polis-protocol#readme"
+Issues = "https://github.com/ymxlx/polis-protocol/issues"
 
 [project.scripts]
 polis = "polis.cli:main"
