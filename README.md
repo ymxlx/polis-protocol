@@ -1,4 +1,4 @@
-<!-- mcp-name: io.github.yehudalevy-collab/polis-protocol -->
+<!-- mcp-name: io.github.ymxlx/polis-protocol -->
 <p align="center">
   <img src="assets/banner.png" alt="Polis Protocol — three AI agents, one protocol, unified intelligence" width="100%" />
 </p>
@@ -8,7 +8,7 @@
 > The local-first control plane for coding agents. Run Claude, Codex, Gemini, and Cursor against one repo — each claimed contract records an owner, agents can record evidence, and shared lessons help reduce repeated failures. Plain markdown, in git, across every vendor.
 
 [![Website](https://img.shields.io/badge/website-polis--protocol.ymlsora.chatgpt.site-E8B24C)](https://polis-protocol.ymlsora.chatgpt.site)
-[![tests](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml/badge.svg)](https://github.com/yehudalevy-collab/polis-protocol/actions/workflows/tests.yml)
+[![tests](https://github.com/ymxlx/polis-protocol/actions/workflows/tests.yml/badge.svg)](https://github.com/ymxlx/polis-protocol/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/polis-protocol?label=pypi&color=2b7)](https://pypi.org/project/polis-protocol/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
@@ -49,7 +49,7 @@ Early on, Claude did — it rated itself highly. But two finished contracts and 
 That loop — work routed by track record, track record updated by outcomes — is the entire point. See it yourself in one command, no install, no API keys:
 
 ```bash
-git clone https://github.com/yehudalevy-collab/polis-protocol.git
+git clone https://github.com/ymxlx/polis-protocol.git
 cd polis-protocol && bash scripts/demo.sh
 ```
 
@@ -363,7 +363,7 @@ Cross-vendor routing is where this protocol earns its keep. A Spanish translatio
 
 ## Relationship to `agent-vault`
 
-[`agent-vault`](https://github.com/yehudalevy-collab/agent-vault) is a sister project: a simpler, communication-only protocol where agents share an Obsidian-style markdown blackboard. If you only need agents to leave each other notes, `agent-vault` is enough.
+[`agent-vault`](https://github.com/ymxlx/agent-vault) is a sister project: a simpler, communication-only protocol where agents share an Obsidian-style markdown blackboard. If you only need agents to leave each other notes, `agent-vault` is enough.
 
 Pick **Polis Protocol** when:
 
