@@ -1,0 +1,17 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: |
+          python -m pip install --upgrade pip
+          if [ -f pyproject.toml ]; then pip install -e ".[dev]" || pip install -e . || true; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - run: python -m pytest -q
+      - name: initializer dry-run
+        run: |
+          if [ -f tests/test_initializer_dry_run.py ]; then python -m pytest -q tests/test_initializer_dry_run.py; fi
