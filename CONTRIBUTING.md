@@ -23,6 +23,13 @@ Welcome. Polis is small, opinionated, and meant to stay readable end-to-end. Tha
 3. **Touch tests if you touch parsers.** `python3 scripts/test_reconcile_parsing.py` runs in under a second.
 4. **Update the spec.** If your PR changes a file format, edit `references/protocol-spec.md` in the same PR. If it changes a rule, edit `templates/POLIS_CONSTITUTION.md` too.
 
+## Local Setup
+
+We recommend creating a virtual environment. You can run the CLI without installing the package globally by using the module entry point:
+```bash
+python -m polis --help
+```
+
 ## Style
 
 - **Python**: stdlib first. `route_contract.py` is the only file that needs `PyYAML`. Keep it that way unless there's a compelling reason.
