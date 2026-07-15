@@ -66,6 +66,9 @@ jobs:
       - name: Run reflect (Layer 3 self-amendments) test
         run: python3 scripts/test_reflect.py
 
+      - name: Run shipped examples validation test
+        run: python3 scripts/test_examples.py
+
       - name: Run extension thin-client state test (node)
         run: node editors/antigravity/test_state.js
 
