@@ -37,7 +37,10 @@ It's **vendor-agnostic**: Antigravity, Claude, Codex, and Gemini agents can all 
 
 ## Learn more
 
-- Repo & full docs: **https://github.com/yehudalevy-collab/polis-protocol**
-- Antigravity integration guide: **https://github.com/yehudalevy-collab/polis-protocol/blob/main/docs/antigravity.md**
+- Repo & full docs: **https://github.com/ymxlx/polis-protocol**
+- Antigravity integration guide: **https://github.com/ymxlx/polis-protocol/blob/main/docs/antigravity.md**
 
 MIT licensed.
+
+> Distribution compatibility: the currently published Open VSX extension keeps
+> the legacy `yehudalevy-collab` publisher ID until it is republished under `ymxlx`.

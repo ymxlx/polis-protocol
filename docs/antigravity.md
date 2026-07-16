@@ -33,7 +33,7 @@ what the rules are). They compose cleanly.
 From your Antigravity project root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash -s -- \
+curl -fsSL https://raw.githubusercontent.com/ymxlx/polis-protocol/main/install.sh | bash -s -- \
   --agent-id gemini-antigravity-yourproject \
   --vendor google \
   --model gemini-3 \

@@ -6,8 +6,8 @@ usage() {
 Install Polis Protocol into a project.
 
 Usage:
-  curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash
-  curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash -s -- --agent-id claude-research-myapp
+  curl -fsSL https://raw.githubusercontent.com/ymxlx/polis-protocol/main/install.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/ymxlx/polis-protocol/main/install.sh | bash -s -- --agent-id claude-research-myapp
 
 Options:
   --project-root PATH    Project to initialize. Default: current directory
@@ -121,7 +121,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Downloading Polis Protocol..."
-curl -fsSL "https://github.com/yehudalevy-collab/polis-protocol/archive/refs/heads/main.tar.gz" \
+curl -fsSL "https://github.com/ymxlx/polis-protocol/archive/refs/heads/main.tar.gz" \
   | tar -xz -C "$TMPDIR" --strip-components=1
 
 echo "Founding polis in $PROJECT_ROOT"
