@@ -1,7 +1,7 @@
 import { CopyButton } from "./CopyButton";
 import { HashNavigator } from "./HashNavigator";
 
-const repository = "https://github.com/yehudalevy-collab/polis-protocol";
+const repository = "https://github.com/ymxlx/polis-protocol";
 
 const concepts = [
   {
@@ -434,7 +434,7 @@ export default function Home() {
             <a href={`${repository}/releases`} target="_blank" rel="noopener">Releases</a>
             <a href={`${repository}/blob/main/LICENSE`} target="_blank" rel="noopener">License</a>
             <a href={`${repository}/blob/main/SECURITY.md`} target="_blank" rel="noopener">Security</a>
-            <a href="https://open-vsx.org/extension/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">Open VSX</a>
+            <a href="https://open-vsx.org/extension/yehudalevy-collab/polis-protocol" target="_blank" rel="noopener">Open VSX (legacy publisher)</a>
           </nav>
         </div>
       </footer>

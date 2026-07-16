@@ -32,11 +32,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yehudalevy-collab/polis-protocol.git"
+    "url": "https://github.com/ymxlx/polis-protocol.git"
   },
   "homepage": "https://polis-protocol.ymlsora.chatgpt.site",
   "bugs": {
-    "url": "https://github.com/yehudalevy-collab/polis-protocol/issues"
+    "url": "https://github.com/ymxlx/polis-protocol/issues"
   },
   "main": "./extension.js",
   "activationEvents": [

@@ -1,12 +1,12 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.yehudalevy-collab/polis-protocol",
+  "name": "io.github.ymxlx/polis-protocol",
   "title": "Polis Protocol",
   "description": "Local-first control plane for coding agents: routing, reservations, and guardrails.",
   "version": "2.0.1",
   "websiteUrl": "https://polis-protocol.ymlsora.chatgpt.site",
   "repository": {
-    "url": "https://github.com/yehudalevy-collab/polis-protocol",
+    "url": "https://github.com/ymxlx/polis-protocol",
     "source": "github"
   },
   "packages": [

@@ -6,11 +6,11 @@ This is the one-time manual step to list `polis mcp` in
 **(b)** an interactive GitHub login, so it can't run unattended in CI.
 
 Everything in the repo is already prepared:
-- [`server.json`](../server.json) — namespace `io.github.yehudalevy-collab/polis-protocol`,
+- [`server.json`](../server.json) — canonical namespace `io.github.ymxlx/polis-protocol`,
   PyPI identifier `polis-protocol`, stdio transport, `packageArguments: ["mcp"]`.
 - A `polis-protocol` console-script alias (in `pyproject.toml`) so registry clients that run
   `uvx polis-protocol mcp` start the server. (`polis-protocol mcp` == `polis mcp`.)
-- The ownership marker `<!-- mcp-name: io.github.yehudalevy-collab/polis-protocol -->` at the
+- The ownership marker `<!-- mcp-name: io.github.ymxlx/polis-protocol -->` at the
   top of `README.md`, which PyPI ships in the package long-description for verification.
 
 ## 0. Prerequisite: publish the package version named in `server.json`
@@ -52,7 +52,8 @@ mcp-publisher login github
 ```
 
 Opens a GitHub device-flow prompt: visit the URL, enter the code, authorize. This proves you
-own the `io.github.yehudalevy-collab/*` namespace (your GitHub account is `yehudalevy-collab`).
+own the `io.github.ymxlx/*` namespace. The repository's canonical GitHub owner and
+the server namespace must stay aligned.
 
 ## 3. Publish
 

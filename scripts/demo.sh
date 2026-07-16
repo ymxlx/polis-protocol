@@ -65,5 +65,5 @@ echo
 bold "See the full worked example:"
 dim  "  examples/research-team/   (3 citizens, a leader shift, a ratified amendment)"
 bold "Start your own polis:"
-dim  "  curl -fsSL https://raw.githubusercontent.com/yehudalevy-collab/polis-protocol/main/install.sh | bash"
+dim  "  curl -fsSL https://raw.githubusercontent.com/ymxlx/polis-protocol/main/install.sh | bash"
 echo

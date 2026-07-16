@@ -18,9 +18,9 @@ const structuredData = {
   softwareVersion: "2.0",
   description:
     "A Git-native coordination protocol for coding agents that stores tasks, routing history, lessons, and decisions in one shared folder.",
-  codeRepository: "https://github.com/yehudalevy-collab/polis-protocol",
+  codeRepository: "https://github.com/ymxlx/polis-protocol",
   downloadUrl: "https://pypi.org/project/polis-protocol/",
-  license: "https://github.com/yehudalevy-collab/polis-protocol/blob/main/LICENSE",
+  license: "https://github.com/ymxlx/polis-protocol/blob/main/LICENSE",
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "Coordinate Claude Code, Codex, Gemini, Cursor, and other coding agents through one shared Git-native workspace for tasks, routing history, lessons, and decisions.",
     applicationName: "Polis Protocol",
     alternates: { canonical: "/" },
-    authors: [{ name: "Polis Protocol contributors", url: "https://github.com/yehudalevy-collab/polis-protocol" }],
+    authors: [{ name: "Polis Protocol contributors", url: "https://github.com/ymxlx/polis-protocol" }],
     keywords: ["coding agents", "multi-agent", "Claude Code", "Codex", "Gemini", "Git", "MCP", "agent coordination"],
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
     openGraph: {
