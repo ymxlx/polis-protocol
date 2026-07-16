@@ -122,6 +122,9 @@ jobs:
             --vendor anthropic \
             --model x --tool x --project-name x 2>/dev/null
 
+      - name: Temporary branch-protection failure probe
+        run: exit 1
+
   dependency-review:
     name: Dependency review
     if: github.event_name == 'pull_request'
