@@ -393,7 +393,7 @@ Forks, issues, and amendments welcome.
 The protocol layer is stable. Work in flight, in rough order of expected impact:
 
 - **`examples/` gallery** — 3 worked polises (research team, product team, OSS maintainer trio) to teach by example. Contributions welcome.
-- **Alternate routers** — UCB and Thompson-sampling variants of `route_contract.py`, side-by-side with the default ε-greedy bandit. Benchmark harness on synthetic capability traces.
+- **Alternate routers** — a deterministic UCB1 variant ships behind `route_contract.py --policy ucb` (see `references/routing.md`); a Thompson-sampling variant is still to come, side-by-side with the default ε-greedy bandit. Benchmark harness on synthetic capability traces.
 - **Contextual bandit** — incorporate per-contract features (deadline pressure, stakes level, language) into the routing decision, not just per-tag history.
 - **Auto-rollover** — quarterly chronicle rollover and 90-day settled-contract archival as a one-line cron, so a year-long polis stays bounded without manual hygiene.
 - **Bridge expansions** — first-class entry pointers for Aider, opencode, Zed, Devin, Cursor agent mode. Each is a 30-line markdown stub.
