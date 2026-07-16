@@ -34,10 +34,13 @@ def _make_polis(root: Path):
             encoding="utf-8")
 
 
-def _write_proposed_amendment(root: Path, aid, title, expires_days=30, quorum=None):
+def _write_proposed_amendment(
+    root: Path, aid, title, expires_days=30, quorum=None, now=None
+):
     d = root / "amendments" / "proposed"
     d.mkdir(parents=True, exist_ok=True)
-    exp = (datetime.now() + timedelta(days=expires_days)).strftime("%Y-%m-%d")
+    base_time = now or datetime.now()
+    exp = (base_time + timedelta(days=expires_days)).strftime("%Y-%m-%d")
     fm = {
         "amendment_id": aid,
         "title": title,
@@ -230,7 +233,9 @@ class AmendmentsTest(unittest.TestCase):
         
         aid = "2026-07-12-expired-test"
         # Expires 2 days ago (-2)
-        _write_proposed_amendment(self.root, aid, "Expiry Test", expires_days=-2, quorum=2)
+        _write_proposed_amendment(
+            self.root, aid, "Expiry Test", expires_days=-2, quorum=2, now=now
+        )
         
         results = amendments.tally_amendments(self.root, now=now)
         self.assertEqual(len(results), 1)
