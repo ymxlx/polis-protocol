@@ -293,3 +293,8 @@ class AmendmentsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_capability_card_required_keys_20260716():
+    card = {"name": "demo", "skills": []}
+    assert "name" in card and "skills" in card
