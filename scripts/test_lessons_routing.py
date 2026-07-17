@@ -7,23 +7,30 @@ Covers two policies:
   a structured routing_effect changes a later recommendation and is named in the
   explanation, the effect is bounded, and un-accepted lessons are ignored; and
 * the deterministic UCB1 variant — cold-start (unplayed arms first) and
-  learned-history (mean + confidence bonus) selection, with no randomness.
+  learned-history (mean + confidence bonus) selection, with no randomness; and
+* the seeded Thompson-sampling variant — seeded determinism, cold-start spread
+  across unplayed arms, exploit-on-ample-evidence, and empty-input safety.
 """
+import random
 import sys
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from polis.routing import (  # noqa: E402
     LESSON_CAP,
+    THOMPSON_PRIOR_SIGMA,
     WEIGHTS_DEFAULT,
     citizen_sample_count,
     load_lessons,
     lessons_score,
+    pick_thompson,
     pick_ucb,
     score_citizen,
+    thompson_posterior_sigma,
 )
 
 CONTRACT = {"required_tags": ["spanish-translation"], "cost_ceiling": "medium"}
@@ -178,6 +185,79 @@ class UCBRoutingTest(unittest.TestCase):
 
     def test_empty_scores_is_safe(self):
         self.assertEqual(pick_ucb([], {}), (None, False, 0.0))
+
+
+class ThompsonRoutingTest(unittest.TestCase):
+    """The optional Thompson policy is stochastic but seed-reproducible."""
+
+    def test_posterior_sigma_shrinks_with_sample_count(self):
+        # Unplayed arms get the wide prior; width then shrinks monotonically as
+        # evidence accumulates, so more-sampled arms have tighter posteriors.
+        self.assertEqual(thompson_posterior_sigma(0), THOMPSON_PRIOR_SIGMA)
+        self.assertLess(thompson_posterior_sigma(1), THOMPSON_PRIOR_SIGMA)
+        self.assertLess(thompson_posterior_sigma(100), thompson_posterior_sigma(4))
+        self.assertLess(thompson_posterior_sigma(4), thompson_posterior_sigma(1))
+
+    def test_same_seed_gives_same_pick_across_calls(self):
+        # Reproducibility: a fixed seed pins the pick, call after call.
+        scores = [{"citizen": "a", "total": 0.60}, {"citizen": "b", "total": 0.55}]
+        counts = {"a": 3, "b": 3}
+        first = pick_thompson(scores, counts, random.Random(7))
+        for _ in range(20):
+            self.assertEqual(pick_thompson(scores, counts, random.Random(7)), first)
+
+    def test_pick_is_independent_of_score_order(self):
+        # Sampling in citizen-id order makes the pick a function of the seed
+        # alone, not of dict/list insertion order.
+        counts = {"a": 3, "b": 3}
+        ab = [{"citizen": "a", "total": 0.60}, {"citizen": "b", "total": 0.55}]
+        ba = [{"citizen": "b", "total": 0.55}, {"citizen": "a", "total": 0.60}]
+        self.assertEqual(
+            pick_thompson(ab, counts, random.Random(7)),
+            pick_thompson(ba, counts, random.Random(7)),
+        )
+
+    def test_cold_start_spreads_across_unplayed_arms(self):
+        # Three unplayed citizens (n == 0) with differing means: the wide prior
+        # spreads picks across ALL of them over many seeds — even the lowest
+        # mean arm wins sometimes — so cold-start reaches everyone.
+        scores = [{"citizen": "a", "total": 0.9},
+                  {"citizen": "b", "total": 0.5},
+                  {"citizen": "c", "total": 0.1}]
+        counts = {"a": 0, "b": 0, "c": 0}
+        picks = Counter(pick_thompson(scores, counts, random.Random(s))[0]
+                        for s in range(200))
+        self.assertEqual(set(picks), {"a", "b", "c"})  # every arm gets a turn
+        self.assertGreater(picks["c"], 0)  # even the weakest cold arm is tried
+
+    def test_exploits_the_leader_on_ample_evidence(self):
+        # Strong positive evidence (high mean, ample n -> tight posterior) beats
+        # weak evidence, and the pick matches the pure-exploit leader (not an
+        # exploration pick). Robust: 'a' wins for every seed in a wide sweep.
+        scores = [{"citizen": "a", "total": 0.90}, {"citizen": "b", "total": 0.30}]
+        counts = {"a": 100, "b": 100}
+        for s in range(50):
+            self.assertEqual(pick_thompson(scores, counts, random.Random(s))[0], "a")
+        chosen, is_exploration, score = pick_thompson(scores, counts, random.Random(7))
+        self.assertEqual(chosen, "a")
+        self.assertFalse(is_exploration)  # 'a' is also the highest-mean pick
+        self.assertEqual(score, 0.90)
+
+    def test_strong_evidence_pick_depends_on_the_mean_accounting(self):
+        # Decision-boundary / mutation-biting scenario. At seed 7 the correct
+        # posterior (centered on each citizen's combined score) picks 'a', the
+        # strong-evidence arm. This is the assertion the mutation transcript
+        # flips: dropping the mean from the sample (rng.gauss(0.0, sigma)) centers
+        # both arms at 0 and at seed 7 flips the pick to 'b'. So a broken
+        # success/failure accounting — sampling that ignores the evidence — makes
+        # this fail, while a correct one keeps 'a'.
+        scores = [{"citizen": "a", "total": 0.90}, {"citizen": "b", "total": 0.30}]
+        counts = {"a": 100, "b": 100}
+        chosen, _, _ = pick_thompson(scores, counts, random.Random(7))
+        self.assertEqual(chosen, "a")
+
+    def test_empty_scores_is_safe(self):
+        self.assertEqual(pick_thompson([], {}, random.Random(7)), (None, False, 0.0))
 
 
 if __name__ == "__main__":
