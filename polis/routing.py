@@ -12,7 +12,7 @@ Usage:
 Optional:
     --explain                 # print the score breakdown for every citizen
     --apply                   # write the recommendation into the contract's routing.recommended_by_router field
-    --policy P                # selection policy: epsilon-greedy (default) or ucb
+    --policy P                # selection policy: epsilon-greedy (default), ucb, or thompson
     --adaptive                # use adaptive explore_rate per-tag based on leader_confidence (epsilon-greedy only)
     --reconcile               # rebuild routing_stats.yml from settled contracts; ignores --contract
 
@@ -49,13 +49,27 @@ WEIGHTS_DEFAULT = {
 LESSON_CAP = 0.15
 
 # Selection policies. epsilon-greedy is the historical default; ucb is an
-# optional deterministic UCB1 variant (see references/routing.md).
-POLICIES = ("epsilon-greedy", "ucb")
+# optional deterministic UCB1 variant; thompson is a seeded Thompson-sampling
+# variant (see references/routing.md).
+POLICIES = ("epsilon-greedy", "ucb", "thompson")
 
 # UCB1 exploration constant (the `c` in mean + c*sqrt(ln(total)/n)). sqrt(2) is
 # the textbook value; larger explores more. Fixed rather than CLI-tunable to
 # keep the surface small — tune weights/explore_rate in polis.yml instead.
 UCB_EXPLORATION_C = math.sqrt(2)
+
+# Thompson-sampling posterior widths. Each citizen's combined score is the mean
+# of a Gaussian posterior whose standard deviation is THOMPSON_EXPLORATION_C /
+# sqrt(n): wide when little evidence exists, shrinking as sample count n grows,
+# so early picks explore and later ones exploit. Fixed (not CLI-tunable) to keep
+# the flag surface small, mirroring UCB_EXPLORATION_C.
+THOMPSON_EXPLORATION_C = math.sqrt(2)
+
+# Unplayed citizens (n == 0) get this wide fixed prior instead of an undefined
+# c/sqrt(0). It is wider than the n == 1 posterior (sqrt(2) ~ 1.414), so the
+# posterior width is monotonically decreasing in n and every untried citizen is
+# sampled broadly — the cold-start guarantee that all arms still get a real shot.
+THOMPSON_PRIOR_SIGMA = 2.0
 
 COST_FIT = {
     # cost_ceiling -> citizen.cost_envelope.relative -> score
@@ -339,6 +353,67 @@ def pick_ucb(scores: list, counts: dict, c: float = UCB_EXPLORATION_C) -> tuple:
     return chosen["citizen"], is_exploration, chosen["total"]
 
 
+def thompson_posterior_sigma(n: int) -> float:
+    """Posterior standard deviation for a citizen with sample count ``n``.
+
+    Unplayed citizens (``n <= 0``) get the wide ``THOMPSON_PRIOR_SIGMA`` prior;
+    otherwise the width is ``THOMPSON_EXPLORATION_C / sqrt(n)``, shrinking as
+    evidence accumulates. Monotonically decreasing in ``n`` (the prior is wider
+    than the ``n == 1`` width), so more-sampled arms have tighter posteriors.
+    """
+    if n <= 0:
+        return THOMPSON_PRIOR_SIGMA
+    return THOMPSON_EXPLORATION_C / math.sqrt(n)
+
+
+def thompson_sample_values(scores: list, counts: dict, rng: random.Random) -> dict:
+    """Draw one Gaussian posterior sample per citizen: id -> sampled value.
+
+    Each citizen's combined score is the posterior mean; the width comes from
+    ``thompson_posterior_sigma(n)``. Citizens are sampled in citizen-id order so
+    the sequence of ``rng`` draws — and therefore every sample — is fully
+    determined by the seed, independent of dict/insertion order. That is what
+    makes a seeded run reproducible.
+    """
+    samples = {}
+    for s in sorted(scores, key=lambda s: s["citizen"]):
+        n = counts.get(s["citizen"], 0)
+        samples[s["citizen"]] = rng.gauss(s["total"], thompson_posterior_sigma(n))
+    return samples
+
+
+def pick_from_thompson_samples(scores: list, samples: dict) -> tuple:
+    """Return (chosen_citizen_id, exploration_bool, score_of_choice) for samples.
+
+    Picks the citizen with the highest sampled posterior value; sampled-value
+    ties (vanishingly rare with continuous draws) break by citizen id ascending.
+    ``exploration`` is True when the sampled winner differs from the pure-exploit
+    pick (the highest-mean citizen), i.e. sampling changed the decision.
+    """
+    if not scores:
+        return None, False, 0.0
+    chosen = min(scores, key=lambda s: (-samples[s["citizen"]], s["citizen"]))
+    exploit_leader = sorted(scores, key=lambda s: (-s["total"], s["citizen"]))[0]
+    is_exploration = chosen["citizen"] != exploit_leader["citizen"]
+    return chosen["citizen"], is_exploration, chosen["total"]
+
+
+def pick_thompson(scores: list, counts: dict, rng: random.Random) -> tuple:
+    """Return (chosen_citizen_id, exploration_bool, score_of_choice) via Thompson.
+
+    Thompson sampling over a Gaussian posterior per citizen: sample one value
+    from each citizen's ``N(score, sigma(n))`` posterior and pick the max. Unlike
+    UCB this is stochastic, so ``rng`` (a seeded ``random.Random``) is injected —
+    the same seed always yields the same pick, which is what keeps it reproducible
+    in tests and audits. Unplayed citizens (``n == 0``) get the wide prior so
+    cold-start still samples every untried citizen broadly.
+    """
+    if not scores:
+        return None, False, 0.0
+    samples = thompson_sample_values(scores, counts, rng)
+    return pick_from_thompson_samples(scores, samples)
+
+
 def recommend(polis_root, contract_id, seed=None, adaptive=False, policy="epsilon-greedy") -> dict:
     """Score every citizen for an open contract and pick a recommendation.
 
@@ -388,6 +463,10 @@ def recommend(polis_root, contract_id, seed=None, adaptive=False, policy="epsilo
         required_tags = contract_fm.get("required_tags") or []
         counts = {cid: citizen_sample_count(cid, required_tags, stats) for cid in citizens}
         chosen, is_exploration, chosen_score = pick_ucb(scores, counts)
+    elif policy == "thompson":
+        required_tags = contract_fm.get("required_tags") or []
+        counts = {cid: citizen_sample_count(cid, required_tags, stats) for cid in citizens}
+        chosen, is_exploration, chosen_score = pick_thompson(scores, counts, random.Random(seed))
     else:
         chosen, is_exploration, chosen_score = pick_recommendation(
             scores, explore_rate, random.Random(seed))
@@ -531,7 +610,8 @@ def main():
     parser.add_argument("--explain", action="store_true", help="Print score breakdown for every citizen.")
     parser.add_argument("--apply", action="store_true", help="Write the recommendation into the contract.")
     parser.add_argument("--policy", choices=POLICIES, default="epsilon-greedy",
-                        help="Selection policy: epsilon-greedy (default) or ucb (deterministic UCB1).")
+                        help="Selection policy: epsilon-greedy (default), ucb (deterministic UCB1), "
+                             "or thompson (seeded Thompson sampling).")
     parser.add_argument("--adaptive", action="store_true", help="Use adaptive explore_rate per-tag (epsilon-greedy only).")
     parser.add_argument("--reconcile", action="store_true", help="Rebuild routing_stats.yml from settled contracts.")
     parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducible exploration.")
@@ -585,10 +665,16 @@ def main():
         status = load_citizen_status(polis_root, cid)
         scores.append(score_citizen(cid, card, status, contract_fm, stats, weights, lessons))
 
+    thompson_sampled = None
     if args.policy == "ucb":
         required_tags = contract_fm.get("required_tags") or []
         counts = {cid: citizen_sample_count(cid, required_tags, stats) for cid in citizens}
         chosen, is_exploration, chosen_score = pick_ucb(scores, counts)
+    elif args.policy == "thompson":
+        required_tags = contract_fm.get("required_tags") or []
+        counts = {cid: citizen_sample_count(cid, required_tags, stats) for cid in citizens}
+        thompson_sampled = thompson_sample_values(scores, counts, random.Random(args.seed))
+        chosen, is_exploration, chosen_score = pick_from_thompson_samples(scores, thompson_sampled)
     else:
         rng = random.Random(args.seed)
         chosen, is_exploration, chosen_score = pick_recommendation(scores, explore_rate, rng)
@@ -605,6 +691,11 @@ def main():
         print(f"\nPolicy: {args.policy}")
         if args.policy == "ucb":
             print(f"UCB exploration constant c: {UCB_EXPLORATION_C:.3f}")
+        elif args.policy == "thompson":
+            print(f"Thompson exploration scale c: {THOMPSON_EXPLORATION_C:.3f}  (seed: {args.seed})")
+            print("Sampled posterior values (sorted):")
+            for cid in sorted(thompson_sampled, key=lambda k: thompson_sampled[k], reverse=True):
+                print(f"  {cid:30s}  sample={thompson_sampled[cid]:+.3f}")
         else:
             print(f"Explore rate: {explore_rate:.2f}")
 
