@@ -12,7 +12,8 @@ Usage:
 Optional:
     --explain                 # print the score breakdown for every citizen
     --apply                   # write the recommendation into the contract's routing.recommended_by_router field
-    --adaptive                # use adaptive explore_rate per-tag based on leader_confidence
+    --policy P                # selection policy: epsilon-greedy (default) or ucb
+    --adaptive                # use adaptive explore_rate per-tag based on leader_confidence (epsilon-greedy only)
     --reconcile               # rebuild routing_stats.yml from settled contracts; ignores --contract
 
 The recommendation is a starting point. Any citizen can claim against the router
@@ -46,6 +47,15 @@ WEIGHTS_DEFAULT = {
 # Accepted lessons can nudge routing, but never dominate it: the summed effect
 # applied to any one citizen for a contract is clamped to +/- LESSON_CAP.
 LESSON_CAP = 0.15
+
+# Selection policies. epsilon-greedy is the historical default; ucb is an
+# optional deterministic UCB1 variant (see references/routing.md).
+POLICIES = ("epsilon-greedy", "ucb")
+
+# UCB1 exploration constant (the `c` in mean + c*sqrt(ln(total)/n)). sqrt(2) is
+# the textbook value; larger explores more. Fixed rather than CLI-tunable to
+# keep the surface small — tune weights/explore_rate in polis.yml instead.
+UCB_EXPLORATION_C = math.sqrt(2)
 
 COST_FIT = {
     # cost_ceiling -> citizen.cost_envelope.relative -> score
@@ -279,7 +289,57 @@ def pick_recommendation(scores: list, explore_rate: float, rng: random.Random) -
     return scores_sorted[0]["citizen"], False, scores_sorted[0]["total"]
 
 
-def recommend(polis_root, contract_id, seed=None, adaptive=False) -> dict:
+def citizen_sample_count(citizen_id: str, required_tags: list, stats: dict) -> int:
+    """Total settled-contract count for a citizen across the contract's required tags.
+
+    This is the UCB "number of times the arm was pulled" (n). Summing across the
+    required tags mirrors how ``historical_score`` aggregates evidence per tag.
+    """
+    if not required_tags:
+        return 0
+    total = 0
+    tags = stats.get("tags", {})
+    for tag in required_tags:
+        tag_stats = tags.get(tag, {}).get("citizens", {}).get(citizen_id)
+        if tag_stats:
+            total += int(tag_stats.get("contracts_completed", 0) or 0)
+    return total
+
+
+def pick_ucb(scores: list, counts: dict, c: float = UCB_EXPLORATION_C) -> tuple:
+    """Return (chosen_citizen_id, exploration_bool, score_of_choice) via UCB1.
+
+    Deterministic — no randomness. Each arm's priority is
+
+        ucb = mean + c * sqrt(ln(total_n) / n)
+
+    where ``mean`` is the citizen's deterministic combined score, ``n`` is the
+    citizen's sample count, and ``total_n`` is the sum across all citizens.
+    Unplayed arms (n == 0) get infinite priority so cold-start spreads work
+    across untried citizens first. Ties (including ties among unplayed arms)
+    break by citizen id ascending, so a given state always yields the same pick.
+
+    ``exploration`` is True when UCB's choice differs from the pure-exploit pick
+    (the highest-mean citizen), i.e. the confidence bonus changed the decision.
+    """
+    if not scores:
+        return None, False, 0.0
+    total_n = sum(counts.get(s["citizen"], 0) for s in scores)
+
+    def ucb_value(s: dict) -> float:
+        n = counts.get(s["citizen"], 0)
+        if n <= 0:
+            return math.inf
+        return s["total"] + c * math.sqrt(math.log(total_n) / n)
+
+    ranked = sorted(scores, key=lambda s: (-ucb_value(s), s["citizen"]))
+    exploit_leader = sorted(scores, key=lambda s: (-s["total"], s["citizen"]))[0]
+    chosen = ranked[0]
+    is_exploration = chosen["citizen"] != exploit_leader["citizen"]
+    return chosen["citizen"], is_exploration, chosen["total"]
+
+
+def recommend(polis_root, contract_id, seed=None, adaptive=False, policy="epsilon-greedy") -> dict:
     """Score every citizen for an open contract and pick a recommendation.
 
     The shared routing entrypoint for the MCP server and dashboard; ``main()``
@@ -324,8 +384,13 @@ def recommend(polis_root, contract_id, seed=None, adaptive=False) -> dict:
         status = load_citizen_status(polis_root, cid)
         scores.append(score_citizen(cid, card, status, contract_fm, stats, weights, lessons))
 
-    chosen, is_exploration, chosen_score = pick_recommendation(
-        scores, explore_rate, random.Random(seed))
+    if policy == "ucb":
+        required_tags = contract_fm.get("required_tags") or []
+        counts = {cid: citizen_sample_count(cid, required_tags, stats) for cid in citizens}
+        chosen, is_exploration, chosen_score = pick_ucb(scores, counts)
+    else:
+        chosen, is_exploration, chosen_score = pick_recommendation(
+            scores, explore_rate, random.Random(seed))
     return {
         "ok": True,
         "contract_id": contract_fm.get("contract_id", contract_id),
@@ -333,6 +398,7 @@ def recommend(polis_root, contract_id, seed=None, adaptive=False) -> dict:
         "score": chosen_score,
         "exploration": is_exploration,
         "explore_rate": explore_rate,
+        "policy": policy,
         "scores": sorted(scores, key=lambda s: s["total"], reverse=True),
     }
 
@@ -464,7 +530,9 @@ def main():
     parser.add_argument("--contract", help="Path to the open contract .md file.")
     parser.add_argument("--explain", action="store_true", help="Print score breakdown for every citizen.")
     parser.add_argument("--apply", action="store_true", help="Write the recommendation into the contract.")
-    parser.add_argument("--adaptive", action="store_true", help="Use adaptive explore_rate per-tag.")
+    parser.add_argument("--policy", choices=POLICIES, default="epsilon-greedy",
+                        help="Selection policy: epsilon-greedy (default) or ucb (deterministic UCB1).")
+    parser.add_argument("--adaptive", action="store_true", help="Use adaptive explore_rate per-tag (epsilon-greedy only).")
     parser.add_argument("--reconcile", action="store_true", help="Rebuild routing_stats.yml from settled contracts.")
     parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducible exploration.")
     args = parser.parse_args()
@@ -517,8 +585,13 @@ def main():
         status = load_citizen_status(polis_root, cid)
         scores.append(score_citizen(cid, card, status, contract_fm, stats, weights, lessons))
 
-    rng = random.Random(args.seed)
-    chosen, is_exploration, chosen_score = pick_recommendation(scores, explore_rate, rng)
+    if args.policy == "ucb":
+        required_tags = contract_fm.get("required_tags") or []
+        counts = {cid: citizen_sample_count(cid, required_tags, stats) for cid in citizens}
+        chosen, is_exploration, chosen_score = pick_ucb(scores, counts)
+    else:
+        rng = random.Random(args.seed)
+        chosen, is_exploration, chosen_score = pick_recommendation(scores, explore_rate, rng)
 
     if args.explain:
         print("\nScore breakdown (sorted by total):")
@@ -529,11 +602,17 @@ def main():
                   f"lessons={s.get('lessons', 0.0):+.2f}")
             if s.get("applied_lessons"):
                 print(f"  {'':30s}    ↳ lessons applied: {', '.join(s['applied_lessons'])}")
-        print(f"\nExplore rate: {explore_rate:.2f}")
+        print(f"\nPolicy: {args.policy}")
+        if args.policy == "ucb":
+            print(f"UCB exploration constant c: {UCB_EXPLORATION_C:.3f}")
+        else:
+            print(f"Explore rate: {explore_rate:.2f}")
 
     print(f"\nRecommendation: {chosen}")
     print(f"  Score: {chosen_score:.3f}")
     print(f"  Exploration pick: {is_exploration}")
+    if args.policy != "epsilon-greedy":
+        print(f"  Policy: {args.policy}")
 
     if args.apply:
         import re as re_mod

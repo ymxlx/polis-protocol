@@ -112,6 +112,25 @@ So tags where the leader has 30 completed contracts get a low explore rate (clos
 
 The `init_polis.py` script writes the simple fixed-rate policy by default. Switch to adaptive via `scripts/route_contract.py --adaptive`.
 
+### UCB: an alternative to epsilon-greedy
+
+Epsilon-greedy is the default selection policy. As an optional alternative, the router can select with **UCB1** (Upper Confidence Bound) via `scripts/route_contract.py --policy ucb` (the default is `--policy epsilon-greedy`). `--explain` reports which policy was used.
+
+Instead of exploring at random, UCB gives each citizen a priority equal to their score plus a confidence bonus that shrinks as the citizen accumulates history:
+
+```
+ucb(citizen) = score(citizen) + c * sqrt(ln(total_n) / n)
+```
+
+- `score(citizen)` is the same combined score used everywhere else (the exploitation term).
+- `n` is the citizen's total `contracts_completed` across the contract's `required_tags`.
+- `total_n` is the sum of `n` across all citizens.
+- `c` is the exploration constant (`sqrt(2)`, the textbook UCB1 value). It is fixed rather than CLI-tunable to keep the flag surface small; tune `weights`/`explore_rate` in `polis.yml` instead.
+
+An **unplayed citizen** (`n = 0`) has an infinite bonus, so UCB tries every untried citizen before repeating anyone — its cold-start behavior. Once everyone has history, the bonus favours citizens whose lead is not yet backed by many samples, and it fades as evidence accumulates.
+
+**Tradeoff.** UCB is fully deterministic: the same state always yields the same pick (ties, including ties between unplayed citizens, break by citizen id ascending), which makes it reproducible in tests and audits. Epsilon-greedy is stochastic, so it can spread work more evenly across near-equal citizens over many contracts but needs a seed to reproduce. UCB explores more aggressively early (every new citizen gets a turn) and then commits harder to leaders; epsilon-greedy keeps a constant background exploration rate. `--adaptive` applies only to epsilon-greedy.
+
 ## Updating the policy when a contract settles
 
 When a contract moves to `_polis/contracts/settled/`, the router updates `routing_stats.yml`:
